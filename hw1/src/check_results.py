@@ -2,6 +2,7 @@ import numpy as np
 import json
 import os
 
+
 def check_preprocessing_results():
     """Check and validate the preprocessing results"""
 
@@ -12,7 +13,13 @@ def check_preprocessing_results():
     print("=" * 50)
 
     # Check if files exist
-    files_to_check = ["X_train.npy", "X_val.npy", "y_train.npy", "y_val.npy", "label_mapping.json"]
+    files_to_check = [
+        "X_train.npy",
+        "X_val.npy",
+        "y_train.npy",
+        "y_val.npy",
+        "label_mapping.json",
+    ]
 
     for file in files_to_check:
         file_path = os.path.join(results_dir, file)
@@ -32,7 +39,7 @@ def check_preprocessing_results():
         y_train = np.load(os.path.join(results_dir, "y_train.npy"))
         y_val = np.load(os.path.join(results_dir, "y_val.npy"))
 
-        with open(os.path.join(results_dir, "label_mapping.json"), 'r') as f:
+        with open(os.path.join(results_dir, "label_mapping.json"), "r") as f:
             label_mapping = json.load(f)
 
         print("All data loaded successfully!")
@@ -60,16 +67,16 @@ def check_preprocessing_results():
     print(f"Unique artists in training:   {len(unique_train_artists)}")
     print(f"Unique artists in validation: {len(unique_val_artists)}")
     print(f"Total unique artists:         {len(all_artists)}")
-    print(f"Expected artists:             20")
+    print("Expected artists:             20")
 
-    print(f"\nArtist distribution in training:")
+    print("\nArtist distribution in training:")
     train_counts = {}
     for artist in unique_train_artists:
         count = np.sum(y_train == artist)
         train_counts[artist] = count
         print(f"  {artist}: {count} samples")
 
-    print(f"\nArtist distribution in validation:")
+    print("\nArtist distribution in validation:")
     val_counts = {}
     for artist in unique_val_artists:
         count = np.sum(y_val == artist)
@@ -92,7 +99,7 @@ def check_preprocessing_results():
     val_nan = np.sum(np.isnan(X_val))
     val_inf = np.sum(np.isinf(X_val))
 
-    print(f"Training features:")
+    print("Training features:")
     print(f"  NaN values: {train_nan}")
     print(f"  Inf values: {train_inf}")
     print(f"  Min value:  {X_train.min():.6f}")
@@ -100,7 +107,7 @@ def check_preprocessing_results():
     print(f"  Mean:       {X_train.mean():.6f}")
     print(f"  Std:        {X_train.std():.6f}")
 
-    print(f"\nValidation features:")
+    print("\nValidation features:")
     print(f"  NaN values: {val_nan}")
     print(f"  Inf values: {val_inf}")
     print(f"  Min value:  {X_val.min():.6f}")
@@ -111,11 +118,11 @@ def check_preprocessing_results():
     # Show sample features
     print("\n6. SAMPLE FEATURES")
     print("-" * 18)
-    print(f"First training sample features (first 10):")
+    print("First training sample features (first 10):")
     print(f"  {X_train[0][:10]}")
     print(f"  Artist: {y_train[0]}")
 
-    print(f"\nFirst validation sample features (first 10):")
+    print("\nFirst validation sample features (first 10):")
     print(f"  {X_val[0][:10]}")
     print(f"  Artist: {y_val[0]}")
 
@@ -123,7 +130,7 @@ def check_preprocessing_results():
     zero_features_train = np.sum(X_train == 0, axis=0)
     zero_features_val = np.sum(X_val == 0, axis=0)
 
-    print(f"\nFeatures with all zeros:")
+    print("\nFeatures with all zeros:")
     print(f"  Training: {np.sum(zero_features_train == X_train.shape[0])} features")
     print(f"  Validation: {np.sum(zero_features_val == X_val.shape[0])} features")
 
@@ -161,6 +168,7 @@ def check_preprocessing_results():
             print(f"   - {issue}")
 
     print(f"\nFiles saved in: {os.path.abspath(results_dir)}/")
+
 
 if __name__ == "__main__":
     check_preprocessing_results()
