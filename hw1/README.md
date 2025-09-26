@@ -67,6 +67,13 @@ data/artist20/
         - 25[arxiv] [Audio Flamingo 3: Advancing Audio Intelligence with Fully Open Large Audio Language Models](https://arxiv.org/pdf/2507.08128)
         - [Qwen](https://github.com/QwenLM/Qwen-Audio)
 
+## Data Pre-processing / Data Augmentation
+- Augmentation
+    - torchaudio
+- Source Separation
+    - open-unmix 
+    - spleeter
+    - demucs
 
 ## Evaluation
 
