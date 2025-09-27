@@ -2,9 +2,15 @@ import numpy as np
 import json
 import pickle
 import os
-from sklearn.preprocessing import LabelEncoder, RobustScaler
+from sklearn.preprocessing import (
+    LabelEncoder,
+    RobustScaler,
+    StandardScaler,
+    MinMaxScaler,
+    Normalizer,
+)
 from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectKBest, f_classif, VarianceThreshold
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
@@ -17,10 +23,8 @@ import warnings
 
 # GPU-accelerated ML libraries
 try:
-    import cuml
     from cuml.svm import SVC as cuSVC
     from cuml.ensemble import RandomForestClassifier as cuRandomForest
-    from cuml.neighbors import KNeighborsClassifier as cuKNN
 
     GPU_AVAILABLE = True
     print("🚀 GPU acceleration available with cuML")
@@ -57,8 +61,11 @@ class AugmentedTraditionalMLPipeline:
             "results/task1_augmented" if use_augmented_data else "results/task1"
         )
 
-        # Enhanced preprocessing for augmented data
-        self.scaler = RobustScaler()  # Better for augmented data with outliers
+        # Preprocessing for augmented data
+        self.robust_scaler = RobustScaler()  # Better for augmented data with outliers
+        self.standard_scaler = StandardScaler()  # For mean/std normalization
+        self.minmax_scaler = MinMaxScaler()  # For min-max normalization
+        self.l2_normalizer = Normalizer(norm="l2")  # For L2 normalization
         self.variance_selector = VarianceThreshold(
             threshold=0.01
         )  # Remove low-variance features
@@ -103,7 +110,7 @@ class AugmentedTraditionalMLPipeline:
         return X_train, y_train, X_val, y_val, label_mapping
 
     def preprocess_data(self, X_train, y_train, X_val, y_val):
-        """Enhanced preprocessing for augmented data"""
+        """Preprocessing for augmented data"""
         print("Preprocessing augmented data...")
 
         # Handle NaN values more aggressively
@@ -116,10 +123,34 @@ class AugmentedTraditionalMLPipeline:
         X_val = self.variance_selector.transform(X_val)
         print(f"Features after variance filtering: {X_train.shape[1]}")
 
-        # Robust scaling
-        print("Applying robust scaling...")
-        X_train_scaled = self.scaler.fit_transform(X_train)
-        X_val_scaled = self.scaler.transform(X_val)
+        # Multi-step scaling and normalization
+        print("Applying scaling and normalization...")
+
+        # Step 1: Robust scaling to handle outliers
+        print("  1. Robust scaling (outlier-resistant)...")
+        X_train_robust = self.robust_scaler.fit_transform(X_train)
+        X_val_robust = self.robust_scaler.transform(X_val)
+
+        # Step 2: Standard scaling for mean=0, std=1 normalization
+        print("  2. Standard scaling (mean=0, std=1)...")
+        X_train_standard = self.standard_scaler.fit_transform(X_train_robust)
+        X_val_standard = self.standard_scaler.transform(X_val_robust)
+
+        # Step 3: Min-Max scaling for [0,1] range
+        print("  3. Min-Max scaling ([0,1] range)...")
+        X_train_minmax = self.minmax_scaler.fit_transform(X_train_standard)
+        X_val_minmax = self.minmax_scaler.transform(X_val_standard)
+
+        # Step 4: L2 normalization for unit vectors
+        print("  4. L2 normalization (unit vectors)...")
+        X_train_scaled = self.l2_normalizer.fit_transform(X_train_minmax)
+        X_val_scaled = self.l2_normalizer.transform(X_val_minmax)
+
+        # Clip extreme values for stability
+        print("  5. Feature clipping for stability...")
+        clip_value = 3.0  # Clip values beyond 3 standard deviations
+        X_train_scaled = np.clip(X_train_scaled, -clip_value, clip_value)
+        X_val_scaled = np.clip(X_val_scaled, -clip_value, clip_value)
 
         # Feature selection with cross-validation
         print("Selecting best features...")
@@ -226,7 +257,6 @@ class AugmentedTraditionalMLPipeline:
                 [
                     ("cuSVM_RBF", "GPU-accelerated SVM with RBF kernel"),
                     ("cuRandomForest", "GPU-accelerated Random Forest"),
-                    ("cuKNN", "GPU-accelerated k-Nearest Neighbors"),
                 ]
             )
 
@@ -283,17 +313,6 @@ class AugmentedTraditionalMLPipeline:
                     print("✅ GPU Random Forest trained successfully")
                 except Exception as e:
                     print(f"❌ GPU Random Forest failed: {e}")
-                pbar.update(1)
-
-                # 3. cuML KNN
-                pbar.set_description("Training cuKNN")
-                try:
-                    cu_knn = cuKNN(n_neighbors=5, metric="euclidean")
-                    cu_knn.fit(X_train_gpu, y_train_gpu)
-                    self.models["cuKNN"] = cu_knn
-                    print("✅ GPU KNN trained successfully")
-                except Exception as e:
-                    print(f"❌ GPU KNN failed: {e}")
                 pbar.update(1)
 
             # XGBoost with GPU
@@ -383,80 +402,41 @@ class AugmentedTraditionalMLPipeline:
                         print(f"❌ LightGBM completely failed: {e2}")
                 pbar.update(1)
 
-            # Enhanced CPU models with hyperparameter tuning
-            pbar.set_description("Training Enhanced SVM (CPU)")
+            # CPU models with hyperparameter tuning
+            pbar.set_description("Training SVM (CPU)")
             # Grid search for SVM hyperparameters
             svm_param_grid = {
-                'C': [1.0, 10.0, 100.0],
-                'gamma': ['scale', 'auto', 0.001, 0.01],
-                'kernel': ['rbf', 'poly']
+                "C": [1.0, 10.0, 100.0, 1000.0],
+                "gamma": ["scale", "auto", 0.001, 0.01, 0.1],
+                "kernel": ["rbf", "poly", "sigmoid", "linear", "rbf"],
             }
             svm_base = SVC(probability=True, random_state=42, class_weight="balanced")
-            svm_grid = GridSearchCV(svm_base, svm_param_grid, cv=3, scoring='accuracy', n_jobs=-1)
+            svm_grid = GridSearchCV(
+                svm_base, svm_param_grid, cv=3, scoring="accuracy", n_jobs=-1
+            )
             svm_grid.fit(X_train, y_train)
-            self.models["SVM_Enhanced"] = svm_grid
+            self.models["SVM"] = svm_grid
             pbar.update(1)
 
-            pbar.set_description("Training Enhanced RandomForest (CPU)")
+            pbar.set_description("Training RandomForest (CPU)")
             # Grid search for RandomForest hyperparameters
             rf_param_grid = {
-                'n_estimators': [100, 200],
-                'max_depth': [10, 15, 20],
-                'min_samples_split': [2, 5],
-                'min_samples_leaf': [1, 2]
+                "n_estimators": [100, 200],
+                "max_depth": [10, 15, 20],
+                "min_samples_split": [2, 5],
+                "min_samples_leaf": [1, 2],
             }
-            rf_base = RandomForestClassifier(random_state=42, class_weight="balanced", n_jobs=-1)
-            rf_grid = GridSearchCV(rf_base, rf_param_grid, cv=3, scoring='accuracy', n_jobs=-1)
+            rf_base = RandomForestClassifier(
+                random_state=42, class_weight="balanced", n_jobs=-1
+            )
+            rf_grid = GridSearchCV(
+                rf_base, rf_param_grid, cv=3, scoring="accuracy", n_jobs=-1
+            )
             rf_grid.fit(X_train, y_train)
-            self.models["RandomForest_Enhanced"] = rf_grid
+            self.models["RandomForest"] = rf_grid
             pbar.update(1)
 
-            # Add ensemble methods
-            pbar.set_description("Training Ensemble Models")
-            try:
-                from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
-
-                # Extra Trees
-                et = ExtraTreesClassifier(
-                    n_estimators=100,
-                    max_depth=15,
-                    random_state=42,
-                    class_weight="balanced",
-                    n_jobs=-1
-                )
-                et.fit(X_train, y_train)
-                self.models["ExtraTrees"] = et
-
-                # Gradient Boosting
-                gb = GradientBoostingClassifier(
-                    n_estimators=100,
-                    max_depth=6,
-                    learning_rate=0.1,
-                    random_state=42
-                )
-                gb.fit(X_train, y_train)
-                self.models["GradientBoosting"] = gb
-
-                # Voting Classifier (ensemble of best models)
-                voting_estimators = [
-                    ('svm', svm_grid.best_estimator_),
-                    ('rf', rf_grid.best_estimator_),
-                    ('et', et)
-                ]
-
-                voting_clf = VotingClassifier(
-                    estimators=voting_estimators,
-                    voting='soft',
-                    n_jobs=-1
-                )
-                voting_clf.fit(X_train, y_train)
-                self.models["VotingEnsemble"] = voting_clf
-
-                print("✅ Enhanced ensemble models trained successfully")
-            except Exception as e:
-                print(f"❌ Ensemble training failed: {e}")
-
-            pbar.update(3)  # For the 3 ensemble models
+            print("✅ Core models trained successfully")
         print(f"✅ All models trained successfully! ({len(self.models)} models)")
 
         # Print summary
@@ -614,7 +594,6 @@ class AugmentedTraditionalMLPipeline:
             ax1.text(
                 bar.get_x() + bar.get_width() / 2,
                 bar.get_height() + 0.01,
-                
                 f"{score:.3f}",
                 ha="center",
                 va="bottom",
@@ -699,8 +678,17 @@ class AugmentedTraditionalMLPipeline:
             pickle.dump(self.best_model, f)
 
         # Save all preprocessors
-        with open(f"{self.data_dir}/scaler.pkl", "wb") as f:
-            pickle.dump(self.scaler, f)
+        with open(f"{self.data_dir}/robust_scaler.pkl", "wb") as f:
+            pickle.dump(self.robust_scaler, f)
+
+        with open(f"{self.data_dir}/standard_scaler.pkl", "wb") as f:
+            pickle.dump(self.standard_scaler, f)
+
+        with open(f"{self.data_dir}/minmax_scaler.pkl", "wb") as f:
+            pickle.dump(self.minmax_scaler, f)
+
+        with open(f"{self.data_dir}/l2_normalizer.pkl", "wb") as f:
+            pickle.dump(self.l2_normalizer, f)
 
         with open(f"{self.data_dir}/variance_selector.pkl", "wb") as f:
             pickle.dump(self.variance_selector, f)
@@ -752,7 +740,7 @@ class AugmentedTraditionalMLPipeline:
                                 "augmentation_type": "original",
                             }
                         )
-                    except:
+                    except Exception:
                         continue
 
             X_test, _ = extractor.extract_features_from_augmented_data(test_data)
@@ -762,7 +750,17 @@ class AugmentedTraditionalMLPipeline:
         # Preprocess test features the same way as training data
         X_test = np.nan_to_num(X_test, nan=0.0, posinf=1e6, neginf=-1e6)
         X_test = self.variance_selector.transform(X_test)
-        X_test_scaled = self.scaler.transform(X_test)
+
+        # Apply the same multi-step scaling pipeline
+        X_test_robust = self.robust_scaler.transform(X_test)
+        X_test_standard = self.standard_scaler.transform(X_test_robust)
+        X_test_minmax = self.minmax_scaler.transform(X_test_standard)
+        X_test_scaled = self.l2_normalizer.transform(X_test_minmax)
+
+        # Apply the same clipping
+        clip_value = 3.0
+        X_test_scaled = np.clip(X_test_scaled, -clip_value, clip_value)
+
         X_test_selected = self.feature_selector.transform(X_test_scaled)
 
         # Generate predictions
@@ -834,7 +832,7 @@ def main():
         pipeline.save_model()
 
         # Generate test predictions
-        test_predictions = pipeline.predict_test_set()
+        pipeline.predict_test_set()
 
         print("\n✅ Task 1 Augmented Implementation Completed Successfully!")
         print("=" * 50)

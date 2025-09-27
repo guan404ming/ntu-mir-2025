@@ -8,7 +8,7 @@ import os
 from tqdm import tqdm
 import warnings
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 warnings.filterwarnings("ignore")
 
@@ -497,9 +497,27 @@ class AugmentedAudioFeatureExtractor:
             mfccs = self.mfcc_transform(waveform)
             features.update(self._compute_statistics(mfccs[0], "mfcc"))
 
+            # Additional MFCC pooling operations
+            if mfccs[0].dim() == 2 and mfccs[0].shape[1] > 1:
+                # Global pooling across entire MFCC matrix
+                mfcc_flat = mfccs[0].flatten()
+                features["mfcc_global_energy"] = torch.sum(torch.abs(mfcc_flat)).cpu().item()
+                features["mfcc_spectral_centroid"] = torch.sum(torch.arange(len(mfcc_flat), device=self.device, dtype=torch.float32) * torch.abs(mfcc_flat)) / (torch.sum(torch.abs(mfcc_flat)) + 1e-8)
+                features["mfcc_spectral_centroid"] = features["mfcc_spectral_centroid"].cpu().item() if torch.is_tensor(features["mfcc_spectral_centroid"]) else features["mfcc_spectral_centroid"]
+
             # Mel spectrogram features
             mel_spec = self.mel_spectrogram(waveform)
             features.update(self._compute_statistics(mel_spec[0], "mel"))
+
+            # Additional mel spectrogram pooling
+            if mel_spec[0].dim() == 2 and mel_spec[0].shape[1] > 1:
+                # Temporal texture features
+                mel_diff_time = torch.diff(mel_spec[0], dim=1)
+                features["mel_temporal_flux"] = torch.mean(torch.abs(mel_diff_time)).cpu().item()
+
+                # Frequency texture features
+                mel_diff_freq = torch.diff(mel_spec[0], dim=0)
+                features["mel_freq_flux"] = torch.mean(torch.abs(mel_diff_freq)).cpu().item()
 
             # Enhanced Chroma-like features (low frequency bins)
             chroma_like = mel_spec[0, :12, :]
@@ -522,23 +540,40 @@ class AugmentedAudioFeatureExtractor:
             mel_energy = torch.sum(mel_spec[0], dim=0, keepdim=True)
             features.update(self._compute_statistics(mel_energy, "rolloff"))
 
-            # Enhanced tempo estimation
+            # Enhanced tempo estimation with pooling
             if waveform.shape[-1] > self.sr:
                 diff_spec = torch.diff(mel_spec[0], dim=1)
                 onset_strength = torch.mean(torch.clamp(diff_spec, min=0), dim=0)
-                features["tempo"] = torch.mean(onset_strength).cpu().item() * 100 + 60
 
-                # Rhythm regularity
-                autocorr = torch.nn.functional.conv1d(
+                # Enhanced tempo features with pooling
+                features["tempo_mean"] = torch.mean(onset_strength).cpu().item() * 100 + 60
+                features["tempo_std"] = torch.std(onset_strength).cpu().item() * 50
+                features["tempo_max"] = torch.max(onset_strength).cpu().item() * 150 + 60
+
+                # Rhythm regularity with pooling
+                if len(onset_strength) > 1:
+                    autocorr = torch.nn.functional.conv1d(
+                        onset_strength.unsqueeze(0).unsqueeze(0),
+                        onset_strength.unsqueeze(0).unsqueeze(0).flip(-1),
+                        padding=onset_strength.shape[0] - 1,
+                    )[0, 0]
+
+                    mid_point = len(autocorr) // 2
+                    rhythm_peaks = autocorr[mid_point:]
+                    features["rhythm_regularity_max"] = torch.max(rhythm_peaks).cpu().item()
+                    features["rhythm_regularity_mean"] = torch.mean(rhythm_peaks).cpu().item()
+                    features["rhythm_regularity_std"] = torch.std(rhythm_peaks).cpu().item()
+
+                # Enhanced onset detection pooling
+                onset_strength_smooth = torch.nn.functional.conv1d(
                     onset_strength.unsqueeze(0).unsqueeze(0),
-                    onset_strength.unsqueeze(0).unsqueeze(0).flip(-1),
-                    padding=onset_strength.shape[0] - 1,
+                    torch.ones(1, 1, 3, device=self.device) / 3.0,
+                    padding=1
                 )[0, 0]
-                features["rhythm_regularity"] = (
-                    torch.max(autocorr[len(autocorr) // 2 :]).cpu().item()
-                )
+                features["onset_density"] = torch.sum(onset_strength > torch.mean(onset_strength)).cpu().item() / len(onset_strength)
+                features["onset_regularity"] = torch.std(torch.diff(torch.nonzero(onset_strength > torch.mean(onset_strength)).flatten().float())).cpu().item() if torch.sum(onset_strength > torch.mean(onset_strength)) > 1 else 0.0
 
-            # Spectral bandwidth
+            # Enhanced spectral bandwidth with pooling
             freq_weighted = torch.arange(
                 mel_spec.shape[1], dtype=torch.float32, device=self.device
             ).unsqueeze(1)
@@ -548,6 +583,20 @@ class AugmentedAudioFeatureExtractor:
             features.update(
                 self._compute_statistics(bandwidth.unsqueeze(0), "bandwidth")
             )
+
+            # Additional spectral shape features with pooling
+            if mel_spec[0].shape[1] > 1:
+                # Spectral rolloff with multiple percentiles
+                total_energy = torch.cumsum(mel_spec[0], dim=0)
+                total_sum = torch.sum(mel_spec[0], dim=0, keepdim=True)
+
+                rolloff_85 = torch.argmax((total_energy / (total_sum + 1e-8) > 0.85).float(), dim=0).float()
+                rolloff_95 = torch.argmax((total_energy / (total_sum + 1e-8) > 0.95).float(), dim=0).float()
+
+                features["rolloff_85_mean"] = torch.mean(rolloff_85).cpu().item()
+                features["rolloff_85_std"] = torch.std(rolloff_85).cpu().item()
+                features["rolloff_95_mean"] = torch.mean(rolloff_95).cpu().item()
+                features["rolloff_95_std"] = torch.std(rolloff_95).cpu().item()
 
             # Delta MFCC features
             mfcc_delta = torch.diff(mfccs[0], dim=1, prepend=mfccs[0, :, :1])
@@ -609,7 +658,7 @@ class AugmentedAudioFeatureExtractor:
                 )
 
                 # Complex domain features
-                spec_mag = torch.abs(mel_spec[0])
+                torch.abs(mel_spec[0])
                 spec_phase = torch.angle(
                     torch.complex(mel_spec[0], torch.zeros_like(mel_spec[0]))
                 )
@@ -630,7 +679,7 @@ class AugmentedAudioFeatureExtractor:
                 ) / torch.sum(torch.mean(mel_spec[0], dim=1))
                 features["brightness"] = brightness.cpu().item()
 
-            # Convert to feature array
+            # Convert to feature array with enhanced stability
             feature_array = []
             for key in sorted(features.keys()):
                 value = features[key]
@@ -639,19 +688,22 @@ class AugmentedAudioFeatureExtractor:
                 else:
                     val = float(value)
 
-                # Handle NaN, inf values
+                # Enhanced handling of NaN, inf values with robust replacement
                 if np.isnan(val) or np.isinf(val):
                     val = 0.0
+
+                # Additional stability: clip extreme values
+                val = np.clip(val, -1e6, 1e6)
 
                 feature_array.append(val)
 
             return feature_array
 
-        except Exception as e:
+        except Exception:
             return None
 
     def _compute_statistics(self, tensor, prefix):
-        """Compute statistical features from tensor"""
+        """Compute enhanced statistical features with pooling operations"""
         stats = {}
 
         if tensor.dim() == 0:
@@ -663,17 +715,67 @@ class AugmentedAudioFeatureExtractor:
             flat = tensor.flatten()
             flat = torch.nan_to_num(flat, nan=0.0, posinf=0.0, neginf=0.0)
 
+            # Basic statistics
             stats[f"{prefix}_mean"] = torch.mean(flat).cpu().item()
             stats[f"{prefix}_std"] = torch.std(flat).cpu().item()
             stats[f"{prefix}_max"] = torch.max(flat).cpu().item()
             stats[f"{prefix}_min"] = torch.min(flat).cpu().item()
-        else:
-            for i in range(min(tensor.shape[0], 10)):
-                dim_data = tensor[i].flatten()
-                dim_data = torch.nan_to_num(dim_data, nan=0.0, posinf=0.0, neginf=0.0)
 
-                stats[f"{prefix}_{i}_mean"] = torch.mean(dim_data).cpu().item()
-                stats[f"{prefix}_{i}_std"] = torch.std(dim_data).cpu().item()
+            # Enhanced pooling statistics
+            stats[f"{prefix}_median"] = torch.median(flat).cpu().item()
+            stats[f"{prefix}_q25"] = torch.quantile(flat, 0.25).cpu().item()
+            stats[f"{prefix}_q75"] = torch.quantile(flat, 0.75).cpu().item()
+            stats[f"{prefix}_iqr"] = (torch.quantile(flat, 0.75) - torch.quantile(flat, 0.25)).cpu().item()
+
+            # Robust statistics
+            stats[f"{prefix}_mad"] = torch.median(torch.abs(flat - torch.median(flat))).cpu().item()  # Median Absolute Deviation
+            stats[f"{prefix}_range"] = (torch.max(flat) - torch.min(flat)).cpu().item()
+
+            # Statistical moments
+            if len(flat) > 1:
+                # Skewness approximation
+                mean_val = torch.mean(flat)
+                std_val = torch.std(flat)
+                if std_val > 1e-8:
+                    centered = (flat - mean_val) / std_val
+                    stats[f"{prefix}_skewness"] = torch.mean(centered ** 3).cpu().item()
+                    stats[f"{prefix}_kurtosis"] = torch.mean(centered ** 4).cpu().item() - 3.0
+                else:
+                    stats[f"{prefix}_skewness"] = 0.0
+                    stats[f"{prefix}_kurtosis"] = 0.0
+        else:
+            # Multi-dimensional pooling across time axis (usually axis=1)
+            for i in range(min(tensor.shape[0], 10)):
+                dim_data = tensor[i]
+                if dim_data.dim() > 1:
+                    # Temporal pooling operations
+                    dim_data_clean = torch.nan_to_num(dim_data, nan=0.0, posinf=0.0, neginf=0.0)
+
+                    # Mean pooling across time
+                    stats[f"{prefix}_{i}_mean_pool"] = torch.mean(dim_data_clean).cpu().item()
+                    # Max pooling across time
+                    stats[f"{prefix}_{i}_max_pool"] = torch.max(dim_data_clean).cpu().item()
+                    # Standard deviation pooling
+                    stats[f"{prefix}_{i}_std_pool"] = torch.std(dim_data_clean).cpu().item()
+
+                    # Advanced pooling
+                    if dim_data_clean.shape[1] > 1:  # If we have time dimension
+                        # Temporal mean and std across frequency bins
+                        temporal_mean = torch.mean(dim_data_clean, dim=1)
+                        temporal_std = torch.std(dim_data_clean, dim=1)
+                        stats[f"{prefix}_{i}_temporal_mean"] = torch.mean(temporal_mean).cpu().item()
+                        stats[f"{prefix}_{i}_temporal_std_mean"] = torch.mean(temporal_std).cpu().item()
+
+                        # Frequency mean and std across time
+                        freq_mean = torch.mean(dim_data_clean, dim=0)
+                        freq_std = torch.std(dim_data_clean, dim=0)
+                        stats[f"{prefix}_{i}_freq_mean"] = torch.mean(freq_mean).cpu().item()
+                        stats[f"{prefix}_{i}_freq_std_mean"] = torch.mean(freq_std).cpu().item()
+                else:
+                    # 1D case
+                    dim_data_clean = torch.nan_to_num(dim_data, nan=0.0, posinf=0.0, neginf=0.0)
+                    stats[f"{prefix}_{i}_mean"] = torch.mean(dim_data_clean).cpu().item()
+                    stats[f"{prefix}_{i}_std"] = torch.std(dim_data_clean).cpu().item()
 
         return stats
 
@@ -933,7 +1035,7 @@ def main():
             val_files, augmentation_factor=1
         )
 
-    print(f"\nFeature extraction completed:")
+    print("\nFeature extraction completed:")
     print(f"  Training features shape: {X_train.shape}")
     print(f"  Validation features shape: {X_val.shape}")
 
@@ -953,7 +1055,7 @@ def main():
         json.dump(label_to_idx, f, indent=2)
 
     print("\n✅ Features saved to results/task1_augmented/")
-    print(f"📊 Dataset statistics:")
+    print("📊 Dataset statistics:")
     print(f"  Training samples: {len(y_train)}")
     print(f"  Validation samples: {len(y_val)}")
     print(f"  Number of artists: {len(unique_labels)}")
@@ -962,10 +1064,10 @@ def main():
     elif len(X_val) > 0:
         print(f"  Feature vector dimension: {X_val.shape[1]}")
     else:
-        print(f"  Feature vector dimension: unknown (no data)")
+        print("  Feature vector dimension: unknown (no data)")
 
-    print(f"\n🔄 Next step:")
-    print(f"  Run: python task1_train_augmented.py")
+    print("\n🔄 Next step:")
+    print("  Run: python task1_train_augmented.py")
 
 
 if __name__ == "__main__":
