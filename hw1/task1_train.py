@@ -1,12 +1,10 @@
 import numpy as np
 import json
 import pickle
-from sklearn.preprocessing import StandardScaler, LabelEncoder, RobustScaler
+from sklearn.preprocessing import LabelEncoder, RobustScaler
 from sklearn.svm import SVC
 from sklearn.ensemble import (
     RandomForestClassifier,
-    VotingClassifier,
-    GradientBoostingClassifier,
 )
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.feature_selection import SelectKBest, f_classif
@@ -141,7 +139,7 @@ class TraditionalMLPipeline:
             pbar.set_postfix({"model": "k-NN", "score": f"{knn_grid.best_score_:.4f}"})
             pbar.update(1)
 
-        print(f"\nTraining completed!")
+        print("\nTraining completed!")
         print(
             f"SVM - Best params: {self.models['SVM'].best_params_}, CV score: {self.models['SVM'].best_score_:.4f}"
         )
@@ -200,7 +198,7 @@ class TraditionalMLPipeline:
         best_model_name = max(results.keys(), key=lambda x: results[x]["top1_accuracy"])
         self.best_model = self.models[best_model_name]
 
-        print(f"\nEvaluation Results:")
+        print("\nEvaluation Results:")
         for name in results:
             print(
                 f"  {name}: Top-1={results[name]['top1_accuracy']:.4f}, Top-3={results[name]['top3_accuracy']:.4f}"
@@ -360,7 +358,7 @@ class TraditionalMLPipeline:
         with open("results/task1/test_predictions.json", "w") as f:
             json.dump(predictions, f, indent=2)
 
-        print(f"Test predictions saved to results/task1/test_predictions.json")
+        print("Test predictions saved to results/task1/test_predictions.json")
         return predictions
 
 
@@ -390,7 +388,7 @@ def main():
         pipeline.save_model()
 
         # Generate test predictions
-        test_predictions = pipeline.predict_test_set()
+        pipeline.predict_test_set()
 
         print("\nTask 1 implementation completed successfully!")
         print("Check results/task1/ for all outputs including:")
