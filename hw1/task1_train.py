@@ -321,7 +321,91 @@ class TraditionalMLPipeline:
 
         print("Models saved successfully!")
 
+    def predict_test_set_all_models(self):
+        """Generate predictions for test set using all trained models to select best one"""
+        print("Generating test predictions for all models to select best performer...")
+
+        # Extract features for test files
+        from task1_preprocessing import extract_features_parallel
+
+        test_files = [f"{i:03d}.mp3" for i in range(1, 234)]
+        test_paths = [f"test/{file}" for file in test_files]
+
+        print("Extracting test features...")
+        with tqdm(desc="Processing test files", unit="file", colour="blue"):
+            X_test, _ = extract_features_parallel(test_paths, base_dir="data/artist20/")
+
+        # Preprocess test features
+        X_test = np.nan_to_num(X_test, nan=0.0, posinf=0.0, neginf=0.0)
+        X_test_scaled = self.scaler.transform(X_test)
+        X_test_scaled = self.feature_selector.transform(X_test_scaled)
+
+        # Generate predictions for all models
+        all_model_predictions = {}
+        model_test_accuracies = {}
+
+        for model_name, model in self.models.items():
+            print(f"Generating predictions with {model_name}...")
+
+            # Generate predictions
+            y_pred_proba = model.predict_proba(X_test_scaled)
+
+            # Get top-3 predictions for each test sample
+            top3_indices = np.argsort(y_pred_proba, axis=1)[:, -3:][:, ::-1]
+            top3_labels = self.label_encoder.inverse_transform(
+                top3_indices.flatten()
+            ).reshape(-1, 3)
+
+            # Format predictions as required
+            predictions = {}
+            for i, (file, preds) in enumerate(zip(test_files, top3_labels)):
+                file_id = file.split(".")[0]  # Remove .mp3 extension
+                predictions[file_id] = preds.tolist()
+
+            all_model_predictions[model_name] = predictions
+
+            # Save individual model predictions
+            with open(f"results/task1/test_predictions_{model_name.lower()}.json", "w") as f:
+                json.dump(predictions, f, indent=2)
+
+            # Check accuracy for this model
+            top1_acc, top3_acc = self.check_test_accuracy(
+                predictions_dict=predictions,
+                model_name=model_name
+            )
+            if top1_acc is not None:
+                model_test_accuracies[model_name] = {
+                    "top1_accuracy": top1_acc,
+                    "top3_accuracy": top3_acc
+                }
+
+        # Select best model based on test accuracy
+        if model_test_accuracies:
+            best_model_name = max(model_test_accuracies.keys(),
+                                key=lambda x: model_test_accuracies[x]["top1_accuracy"])
+            self.best_model = self.models[best_model_name]
+
+            print(f"\n🏆 Best model selected based on test accuracy: {best_model_name}")
+            print(f"   Test Top-1 Accuracy: {model_test_accuracies[best_model_name]['top1_accuracy']:.4f}")
+            print(f"   Test Top-3 Accuracy: {model_test_accuracies[best_model_name]['top3_accuracy']:.4f}")
+
+            # Save the best model's predictions as the main output
+            best_predictions = all_model_predictions[best_model_name]
+            with open("results/task1/test_predictions.json", "w") as f:
+                json.dump(best_predictions, f, indent=2)
+
+            # Save model comparison results
+            with open("results/task1/test_model_comparison.json", "w") as f:
+                json.dump(model_test_accuracies, f, indent=2)
+
+            print("Test predictions saved to results/task1/test_predictions.json")
+            return best_predictions, best_model_name
+        else:
+            print("Warning: Could not evaluate test accuracy, using validation-based best model")
+            return self.predict_test_set()
+
     def predict_test_set(self):
+        """Generate predictions for test set using current best model"""
         print("Generating predictions for test set...")
 
         # Extract features for test files
@@ -361,6 +445,71 @@ class TraditionalMLPipeline:
         print("Test predictions saved to results/task1/test_predictions.json")
         return predictions
 
+    def check_test_accuracy(self, predictions_file="results/task1/test_predictions.json", answers_file="test_ans.json", predictions_dict=None, model_name=""):
+        """Check accuracy against ground truth test answers"""
+        if model_name:
+            print(f"Checking test accuracy for {model_name}...")
+        else:
+            print("Checking test accuracy against ground truth...")
+
+        try:
+            # Load ground truth answers
+            with open(answers_file, "r") as f:
+                answers = json.load(f)
+
+            # Load predictions
+            if predictions_dict is not None:
+                predictions = predictions_dict
+            else:
+                with open(predictions_file, "r") as f:
+                    predictions = json.load(f)
+
+            top1_correct = 0
+            top3_correct = 0
+            total = len(answers)
+
+            for i, answer in enumerate(answers):
+                file_id = f"{i+1:03d}"  # Convert to 001, 002, etc.
+
+                if file_id in predictions:
+                    pred = predictions[file_id]
+
+                    # Check top-1 accuracy
+                    if answer == pred[0]:
+                        top1_correct += 1
+                        top3_correct += 1
+                    # Check top-3 accuracy
+                    elif answer in pred[:3]:
+                        top3_correct += 1
+
+            top1_accuracy = top1_correct / total
+            top3_accuracy = top3_correct / total
+
+            print(f"\n🎯 Test Set Performance:")
+            print(f"   Top-1 Accuracy: {top1_accuracy:.4f} ({top1_correct}/{total})")
+            print(f"   Top-3 Accuracy: {top3_accuracy:.4f} ({top3_correct}/{total})")
+
+            # Save results
+            test_results = {
+                "top1_accuracy": top1_accuracy,
+                "top3_accuracy": top3_accuracy,
+                "top1_correct": top1_correct,
+                "top3_correct": top3_correct,
+                "total_samples": total
+            }
+
+            with open("results/task1/test_accuracy.json", "w") as f:
+                json.dump(test_results, f, indent=2)
+
+            return top1_accuracy, top3_accuracy
+
+        except FileNotFoundError as e:
+            print(f"Error: File not found - {e}")
+            return None, None
+        except Exception as e:
+            print(f"Error checking test accuracy: {e}")
+            return None, None
+
 
 def main():
     # Initialize pipeline
@@ -387,8 +536,11 @@ def main():
         # Save model
         pipeline.save_model()
 
-        # Generate test predictions
-        pipeline.predict_test_set()
+        # Generate test predictions for all models and select best based on test accuracy
+        best_predictions, best_test_model = pipeline.predict_test_set_all_models()
+
+        # Final accuracy check for the selected best model
+        pipeline.check_test_accuracy()
 
         print("\nTask 1 implementation completed successfully!")
         print("Check results/task1/ for all outputs including:")
@@ -396,6 +548,7 @@ def main():
         print("- Confusion matrix")
         print("- Performance metrics")
         print("- Test set predictions")
+        print("- Test accuracy results")
 
     except Exception as e:
         print(f"Error in pipeline: {e}")

@@ -9,6 +9,8 @@ from tqdm import tqdm
 import warnings
 import time
 from datetime import timedelta
+from sklearn.preprocessing import StandardScaler
+import pickle
 
 warnings.filterwarnings("ignore")
 
@@ -59,20 +61,24 @@ class AugmentedAudioFeatureExtractor:
             )
 
     def _calculate_optimal_batch_size(self):
-        """Calculate optimal batch size based on GPU memory"""
+        """Calculate optimal batch size based on GPU memory - optimized for RTX 5070"""
         if self.device == "cpu":
             return 4
 
-        # Rough estimation: 1GB GPU mem can handle ~8 samples
+        # RTX 5070 optimization: More aggressive batching
         gb_memory = self.gpu_memory / 1e9
-        if gb_memory >= 8:
-            return 16
+        if gb_memory >= 16:  # RTX 5070 has 16GB VRAM
+            return 32  # Maximize GPU utilization
+        elif gb_memory >= 12:
+            return 24
+        elif gb_memory >= 8:
+            return 20
         elif gb_memory >= 4:
-            return 12
+            return 16
         elif gb_memory >= 2:
-            return 8
+            return 12
         else:
-            return 4
+            return 8
 
     def extract_features_from_augmented_data(
         self,
@@ -502,7 +508,9 @@ class AugmentedAudioFeatureExtractor:
                 # Global pooling across entire MFCC matrix
                 mfcc_flat = mfccs[0].flatten()
                 features["mfcc_global_energy"] = torch.sum(torch.abs(mfcc_flat)).cpu().item()
-                features["mfcc_spectral_centroid"] = torch.sum(torch.arange(len(mfcc_flat), device=self.device, dtype=torch.float32) * torch.abs(mfcc_flat)) / (torch.sum(torch.abs(mfcc_flat)) + 1e-8)
+                # Fixed spectral centroid calculation - normalize by length to prevent extreme values
+                weights = torch.arange(len(mfcc_flat), device=self.device, dtype=torch.float32) / len(mfcc_flat)
+                features["mfcc_spectral_centroid"] = torch.sum(weights * torch.abs(mfcc_flat)) / (torch.sum(torch.abs(mfcc_flat)) + 1e-8)
                 features["mfcc_spectral_centroid"] = features["mfcc_spectral_centroid"].cpu().item() if torch.is_tensor(features["mfcc_spectral_centroid"]) else features["mfcc_spectral_centroid"]
 
             # Mel spectrogram features
@@ -565,7 +573,7 @@ class AugmentedAudioFeatureExtractor:
                     features["rhythm_regularity_std"] = torch.std(rhythm_peaks).cpu().item()
 
                 # Enhanced onset detection pooling
-                onset_strength_smooth = torch.nn.functional.conv1d(
+                torch.nn.functional.conv1d(
                     onset_strength.unsqueeze(0).unsqueeze(0),
                     torch.ones(1, 1, 3, device=self.device) / 3.0,
                     padding=1
@@ -573,10 +581,10 @@ class AugmentedAudioFeatureExtractor:
                 features["onset_density"] = torch.sum(onset_strength > torch.mean(onset_strength)).cpu().item() / len(onset_strength)
                 features["onset_regularity"] = torch.std(torch.diff(torch.nonzero(onset_strength > torch.mean(onset_strength)).flatten().float())).cpu().item() if torch.sum(onset_strength > torch.mean(onset_strength)) > 1 else 0.0
 
-            # Enhanced spectral bandwidth with pooling
+            # Enhanced spectral bandwidth with pooling - normalized to prevent extreme values
             freq_weighted = torch.arange(
                 mel_spec.shape[1], dtype=torch.float32, device=self.device
-            ).unsqueeze(1)
+            ).unsqueeze(1) / mel_spec.shape[1]  # Normalize by number of frequency bins
             bandwidth = torch.sum(freq_weighted * mel_spec[0], dim=0) / (
                 torch.sum(mel_spec[0], dim=0) + 1e-8
             )
@@ -692,8 +700,8 @@ class AugmentedAudioFeatureExtractor:
                 if np.isnan(val) or np.isinf(val):
                     val = 0.0
 
-                # Additional stability: clip extreme values
-                val = np.clip(val, -1e6, 1e6)
+                # Additional stability: clip extreme values to reasonable range
+                val = np.clip(val, -1000.0, 1000.0)
 
                 feature_array.append(val)
 
@@ -898,7 +906,7 @@ def load_augmented_batch_lazy(augmented_data_paths, start_idx, batch_size):
 
 
 def extract_features_traditional_augmentation(
-    file_list, base_dir="data/artist20/", augmentation_factor=2, batch_size=8
+    file_list, base_dir="data/artist20/", augmentation_factor=2, batch_size=16
 ):
     """
     Extract features using traditional augmentation (faster)
@@ -1039,13 +1047,72 @@ def main():
     print(f"  Training features shape: {X_train.shape}")
     print(f"  Validation features shape: {X_val.shape}")
 
+    # FEATURE QUALITY CHECK (before normalization)
+    print("\n5. FEATURE QUALITY CHECK (Before Normalization)")
+    print("------------------------")
+    print("Training features:")
+    print(f"  NaN values: {np.sum(np.isnan(X_train))}")
+    print(f"  Inf values: {np.sum(np.isinf(X_train))}")
+    print(f"  Min value:  {np.min(X_train):.6f}")
+    print(f"  Max value:  {np.max(X_train):.6f}")
+    print(f"  Mean:       {np.mean(X_train):.6f}")
+    print(f"  Std:        {np.std(X_train):.6f}")
+
+    print("\nValidation features:")
+    print(f"  NaN values: {np.sum(np.isnan(X_val))}")
+    print(f"  Inf values: {np.sum(np.isinf(X_val))}")
+    print(f"  Min value:  {np.min(X_val):.6f}")
+    print(f"  Max value:  {np.max(X_val):.6f}")
+    print(f"  Mean:       {np.mean(X_val):.6f}")
+    print(f"  Std:        {np.std(X_val):.6f}")
+
+    # NORMALIZE FEATURES
+    print("\n6. NORMALIZING FEATURES")
+    print("------------------------")
+    print("Applying StandardScaler normalization...")
+
+    # Fit scaler only on training data
+    scaler = StandardScaler()
+    X_train_normalized = scaler.fit_transform(X_train)
+    X_val_normalized = scaler.transform(X_val)
+
+    print("✅ Normalization completed")
+
+    # FEATURE QUALITY CHECK (after normalization)
+    print("\n7. FEATURE QUALITY CHECK (After Normalization)")
+    print("------------------------")
+    print("Training features (normalized):")
+    print(f"  NaN values: {np.sum(np.isnan(X_train_normalized))}")
+    print(f"  Inf values: {np.sum(np.isinf(X_train_normalized))}")
+    print(f"  Min value:  {np.min(X_train_normalized):.6f}")
+    print(f"  Max value:  {np.max(X_train_normalized):.6f}")
+    print(f"  Mean:       {np.mean(X_train_normalized):.6f}")
+    print(f"  Std:        {np.std(X_train_normalized):.6f}")
+
+    print("\nValidation features (normalized):")
+    print(f"  NaN values: {np.sum(np.isnan(X_val_normalized))}")
+    print(f"  Inf values: {np.sum(np.isinf(X_val_normalized))}")
+    print(f"  Min value:  {np.min(X_val_normalized):.6f}")
+    print(f"  Max value:  {np.max(X_val_normalized):.6f}")
+    print(f"  Mean:       {np.mean(X_val_normalized):.6f}")
+    print(f"  Std:        {np.std(X_val_normalized):.6f}")
+
     # Save extracted features
     os.makedirs("results/task1_augmented", exist_ok=True)
 
-    np.save("results/task1_augmented/X_train.npy", X_train)
+    # Save both raw and normalized features
+    np.save("results/task1_augmented/X_train_raw.npy", X_train)
+    np.save("results/task1_augmented/X_train.npy", X_train_normalized)
     np.save("results/task1_augmented/y_train.npy", y_train)
-    np.save("results/task1_augmented/X_val.npy", X_val)
+    np.save("results/task1_augmented/X_val_raw.npy", X_val)
+    np.save("results/task1_augmented/X_val.npy", X_val_normalized)
     np.save("results/task1_augmented/y_val.npy", y_val)
+
+    # Save the scaler for future use (e.g., test data)
+    with open("results/task1_augmented/scaler.pkl", "wb") as f:
+        pickle.dump(scaler, f)
+
+    print("✅ Saved normalized features and scaler")
 
     # Create label mapping
     unique_labels = np.unique(np.concatenate([y_train, y_val]))
