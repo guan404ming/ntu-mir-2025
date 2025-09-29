@@ -299,7 +299,7 @@ def main():
     with open("results/task1/label_mapping.json", "w") as f:
         json.dump(label_to_idx, f, indent=2)
 
-    print(f"\nExtracted features saved to results/task1/")
+    print("\nExtracted features saved to results/task1/")
     print(f"Number of unique artists: {len(unique_labels)}")
     print(f"Feature vector dimension: {X_train.shape[1]}")
 
