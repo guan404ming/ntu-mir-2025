@@ -187,11 +187,11 @@ def inference_on_test_data(
 
 def main():
     # Configuration
-    model_path = "results/task2/best_panns_tested_3_score_0.7790_model.pth"
+    model_path = "results/task2/best_panns_duration_150_score_1.0043_model.pth"
     train_json_path = "data/artist20/train.json"
     test_dir = "data/artist20/test"
     output_path = "results/task2/test_predictions.json"
-    DURATION = 200
+    DURATION = 150
 
     # Create results directory if it doesn't exist
     os.makedirs("results/task2", exist_ok=True)
