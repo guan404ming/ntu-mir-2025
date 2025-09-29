@@ -322,7 +322,6 @@ class TraditionalMLPipeline:
         print("Models saved successfully!")
 
 
-
 def main():
     # Initialize pipeline
     pipeline = TraditionalMLPipeline()

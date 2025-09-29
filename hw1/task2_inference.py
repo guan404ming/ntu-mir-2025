@@ -15,7 +15,9 @@ warnings.filterwarnings("ignore")
 class PANNsClassifier(nn.Module):
     def __init__(self, num_classes, feature_dim=2048, fine_tune=False):
         super().__init__()
-        self.panns = AudioTagging(checkpoint_path=None, device='cuda' if torch.cuda.is_available() else 'cpu')
+        self.panns = AudioTagging(
+            checkpoint_path=None, device="cuda" if torch.cuda.is_available() else "cpu"
+        )
         self.feature_dim = feature_dim
         self.fine_tune = fine_tune
 
@@ -40,18 +42,18 @@ class PANNsClassifier(nn.Module):
             nn.BatchNorm1d(256),
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(256, num_classes)
+            nn.Linear(256, num_classes),
         )
 
     def forward(self, x):
         # Extract features using PANNs
         if self.fine_tune:
             output_dict = self.panns.model(x, None)
-            features = output_dict['embedding']
+            features = output_dict["embedding"]
         else:
             with torch.no_grad():
                 output_dict = self.panns.model(x, None)
-                features = output_dict['embedding']
+                features = output_dict["embedding"]
 
         # Apply classifier
         output = self.classifier(features)
@@ -62,13 +64,13 @@ def load_model_and_encoder(model_path, train_json_path):
     """Load the trained model and recreate the label encoder from training data"""
 
     # Recreate label encoder from training data
-    with open(train_json_path, 'r') as f:
+    with open(train_json_path, "r") as f:
         train_file_paths = json.load(f)
 
     # Extract labels from file paths (artist names)
     train_labels = []
     for file_path in train_file_paths:
-        path_parts = file_path.split('/')
+        path_parts = file_path.split("/")
         artist_name = path_parts[2]
         train_labels.append(artist_name)
 
@@ -83,7 +85,7 @@ def load_model_and_encoder(model_path, train_json_path):
     model = PANNsClassifier(num_classes, fine_tune=False)
 
     # Load trained weights
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.load_state_dict(torch.load(model_path, map_location=device))
     model = model.to(device)
     model.eval()
@@ -108,7 +110,7 @@ def preprocess_audio(audio_path, sr=16000, duration=120):
             audio = audio[:samples]
         else:
             # Pad if shorter
-            audio = np.pad(audio, (0, max(0, samples - len(audio))), mode='constant')
+            audio = np.pad(audio, (0, max(0, samples - len(audio))), mode="constant")
 
         return torch.FloatTensor(audio).unsqueeze(0)  # Add batch dimension
 
@@ -137,15 +139,17 @@ def predict_single_file(model, audio_tensor, label_encoder, device, top_k=3):
     return predictions
 
 
-def inference_on_test_data(model_path, train_json_path, test_dir, output_path, duration=120):
+def inference_on_test_data(
+    model_path, train_json_path, test_dir, output_path, duration=120
+):
     """Run inference on all test files and save predictions"""
 
     # Load model and label encoder
     model, label_encoder = load_model_and_encoder(model_path, train_json_path)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Get all test files
-    test_files = sorted([f for f in os.listdir(test_dir) if f.endswith('.mp3')])
+    test_files = sorted([f for f in os.listdir(test_dir) if f.endswith(".mp3")])
     print(f"Found {len(test_files)} test files")
 
     # Dictionary to store predictions
@@ -154,13 +158,15 @@ def inference_on_test_data(model_path, train_json_path, test_dir, output_path, d
     # Process each test file
     for filename in tqdm(test_files, desc="Processing test files"):
         file_path = os.path.join(test_dir, filename)
-        file_id = filename.replace('.mp3', '')  # Remove extension for ID
+        file_id = filename.replace(".mp3", "")  # Remove extension for ID
 
         # Preprocess audio
         audio_tensor = preprocess_audio(file_path, duration=duration)
 
         # Make prediction
-        top3_predictions = predict_single_file(model, audio_tensor, label_encoder, device, top_k=3)
+        top3_predictions = predict_single_file(
+            model, audio_tensor, label_encoder, device, top_k=3
+        )
 
         # Store prediction
         predictions[file_id] = top3_predictions
@@ -170,7 +176,7 @@ def inference_on_test_data(model_path, train_json_path, test_dir, output_path, d
             print(f"{file_id}: {top3_predictions}")
 
     # Save predictions to JSON
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(predictions, f, indent=2)
 
     print(f"\nPredictions saved to: {output_path}")
@@ -210,7 +216,7 @@ def main():
         train_json_path=train_json_path,
         test_dir=test_dir,
         output_path=output_path,
-        duration=DURATION  # Use same duration as training
+        duration=DURATION,  # Use same duration as training
     )
 
     print("\nInference completed!")

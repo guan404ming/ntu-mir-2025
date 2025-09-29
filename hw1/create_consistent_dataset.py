@@ -65,18 +65,21 @@ def main():
 
         print("\n✅ Consistent dataset created successfully!")
         print(f"📁 Saved to: {output_dir}/")
-        print(f"📊 Dataset statistics:")
+        print("📊 Dataset statistics:")
         print(f"   Training samples: {len(X_train)}")
         print(f"   Validation samples: {len(X_val)}")
         print(f"   Features per sample: {X_train.shape[1]}")
         print(f"   Number of classes: {len(unique_labels)}")
 
-        print("\n🔧 This uses EXACTLY the same feature extraction as the regular pipeline")
+        print(
+            "\n🔧 This uses EXACTLY the same feature extraction as the regular pipeline"
+        )
         print("   to ensure consistency between training and test feature extraction.")
 
     except Exception as e:
         print(f"❌ Error creating dataset: {e}")
         import traceback
+
         traceback.print_exc()
 
 

@@ -33,7 +33,7 @@ def check_accuracy(answers_file, predictions_file):
         incorrect_predictions = []
 
         for i, answer in enumerate(answers):
-            file_id = f"{i+1:03d}"  # Convert to 001, 002, etc.
+            file_id = f"{i + 1:03d}"  # Convert to 001, 002, etc.
 
             if file_id not in predictions:
                 print(f"Warning: No prediction found for file {file_id}")
@@ -58,49 +58,57 @@ def check_accuracy(answers_file, predictions_file):
                 class_stats[answer]["top3_correct"] += 1
             else:
                 # Track incorrect predictions for analysis
-                incorrect_predictions.append({
-                    "file_id": file_id,
-                    "ground_truth": answer,
-                    "predictions": pred
-                })
+                incorrect_predictions.append(
+                    {"file_id": file_id, "ground_truth": answer, "predictions": pred}
+                )
 
         # Calculate overall accuracy
         top1_accuracy = top1_correct / total
         top3_accuracy = top3_correct / total
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("OVERALL TEST SET PERFORMANCE")
-        print("="*60)
+        print("=" * 60)
         print(f"Top-1 Accuracy: {top1_accuracy:.4f} ({top1_correct}/{total})")
         print(f"Top-3 Accuracy: {top3_accuracy:.4f} ({top3_correct}/{total})")
 
         # Per-class performance
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("PER-CLASS PERFORMANCE")
-        print("="*60)
+        print("=" * 60)
         print(f"{'Artist':<25} {'Total':<6} {'Top-1':<12} {'Top-3':<12}")
         print("-" * 60)
 
         for artist in sorted(class_stats.keys()):
             stats = class_stats[artist]
-            top1_acc = stats["top1_correct"] / stats["total"] if stats["total"] > 0 else 0
-            top3_acc = stats["top3_correct"] / stats["total"] if stats["total"] > 0 else 0
-            print(f"{artist:<25} {stats['total']:<6} {top1_acc:<12.3f} {top3_acc:<12.3f}")
+            top1_acc = (
+                stats["top1_correct"] / stats["total"] if stats["total"] > 0 else 0
+            )
+            top3_acc = (
+                stats["top3_correct"] / stats["total"] if stats["total"] > 0 else 0
+            )
+            print(
+                f"{artist:<25} {stats['total']:<6} {top1_acc:<12.3f} {top3_acc:<12.3f}"
+            )
 
         # Show some incorrect predictions for analysis
         if incorrect_predictions and len(incorrect_predictions) <= 10:
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             print("INCORRECT PREDICTIONS (All shown)")
-            print("="*60)
+            print("=" * 60)
             for item in incorrect_predictions:
-                print(f"File {item['file_id']}: {item['ground_truth']} -> {item['predictions']}")
+                print(
+                    f"File {item['file_id']}: {item['ground_truth']} -> {item['predictions']}"
+                )
         elif incorrect_predictions:
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             print("INCORRECT PREDICTIONS (First 10 shown)")
-            print("="*60)
+            print("=" * 60)
             for item in incorrect_predictions[:10]:
-                print(f"File {item['file_id']}: {item['ground_truth']} -> {item['predictions']}")
-            print(f"... and {len(incorrect_predictions)-10} more")
+                print(
+                    f"File {item['file_id']}: {item['ground_truth']} -> {item['predictions']}"
+                )
+            print(f"... and {len(incorrect_predictions) - 10} more")
 
         # Save detailed results
         results = {
@@ -109,10 +117,10 @@ def check_accuracy(answers_file, predictions_file):
                 "top3_accuracy": top3_accuracy,
                 "top1_correct": top1_correct,
                 "top3_correct": top3_correct,
-                "total_samples": total
+                "total_samples": total,
             },
             "per_class": class_stats,
-            "incorrect_predictions": incorrect_predictions
+            "incorrect_predictions": incorrect_predictions,
         }
 
         output_file = predictions_file.replace(".json", "_accuracy_check.json")
@@ -131,7 +139,9 @@ def check_accuracy(answers_file, predictions_file):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Check test predictions against ground truth")
+    parser = argparse.ArgumentParser(
+        description="Check test predictions against ground truth"
+    )
     parser.add_argument("answers_file", help="Path to ground truth answers JSON file")
     parser.add_argument("predictions_file", help="Path to predictions JSON file")
 
