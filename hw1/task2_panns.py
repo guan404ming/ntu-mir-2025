@@ -360,8 +360,8 @@ def train_model(
         print(
             f"Epoch {epoch + 1}: Test Top-1 Accuracy: {test_top1:.4f}, Test Top-3 Accuracy: {test_top3:.4f}, Test Score: {score:.4f}"
         )
-        if test_top1 > best_test_acc:
-            best_test_acc = test_top1
+        if score > best_test_acc:
+            best_test_acc = test_top1 + test_top3 * 0.5
             torch.save(
                 model.state_dict(),
                 f"results/task2/best_panns_duration_{duration}_score_{score:.4f}_model.pth",
@@ -384,7 +384,7 @@ def main():
 
     print("Loading datasets with improved settings...")
     DURATION = 150
-    EPOCHS = 50
+    EPOCHS = 100
 
     # Create datasets with augmentation and longer duration
     train_dataset = Artist20Dataset(
