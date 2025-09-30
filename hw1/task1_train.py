@@ -3,17 +3,12 @@ import json
 import pickle
 from sklearn.preprocessing import LabelEncoder, RobustScaler
 from sklearn.svm import SVC
-from sklearn.ensemble import (
-    RandomForestClassifier,
-)
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
-import matplotlib.pyplot as plt
-import seaborn as sns
 from tqdm import tqdm
-import torch
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -211,85 +206,10 @@ class TraditionalMLPipeline:
 
         return results, best_model_name
 
-    def generate_reports(self, X_val, y_val, results, best_model_name):
-        print("\nGenerating evaluation reports...")
+    def save_results(self, results, best_model_name):
+        """Save evaluation results to JSON"""
+        print("\nSaving evaluation results...")
 
-        # Classification report for best model
-        best_pred = results[best_model_name]["predictions"]
-        class_names = self.label_encoder.classes_
-
-        print(f"\nClassification Report for {best_model_name}:")
-        print(classification_report(y_val, best_pred, target_names=class_names))
-
-        # Confusion Matrix
-        cm = confusion_matrix(y_val, best_pred)
-
-        plt.figure(figsize=(16, 12))
-        sns.heatmap(
-            cm,
-            annot=True,
-            fmt="d",
-            cmap="Blues",
-            xticklabels=class_names,
-            yticklabels=class_names,
-        )
-        plt.title(f"Confusion Matrix - {best_model_name}")
-        plt.xlabel("Predicted")
-        plt.ylabel("Actual")
-        plt.xticks(rotation=45, ha="right")
-        plt.yticks(rotation=0)
-        plt.tight_layout()
-        plt.savefig(
-            f"results/task1/confusion_matrix_{best_model_name.lower()}.png",
-            dpi=300,
-            bbox_inches="tight",
-        )
-        plt.close()
-
-        # Model comparison
-        model_names = list(results.keys())
-        top1_scores = [results[name]["top1_accuracy"] for name in model_names]
-        top3_scores = [results[name]["top3_accuracy"] for name in model_names]
-
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
-
-        # Top-1 accuracy comparison
-        bars1 = ax1.bar(
-            model_names, top1_scores, color=["#ff7f0e", "#2ca02c", "#1f77b4"]
-        )
-        ax1.set_title("Top-1 Accuracy Comparison")
-        ax1.set_ylabel("Accuracy")
-        ax1.set_ylim(0, 1)
-        for bar, score in zip(bars1, top1_scores):
-            ax1.text(
-                bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + 0.01,
-                f"{score:.3f}",
-                ha="center",
-                va="bottom",
-            )
-
-        # Top-3 accuracy comparison
-        bars2 = ax2.bar(
-            model_names, top3_scores, color=["#ff7f0e", "#2ca02c", "#1f77b4"]
-        )
-        ax2.set_title("Top-3 Accuracy Comparison")
-        ax2.set_ylabel("Accuracy")
-        ax2.set_ylim(0, 1)
-        for bar, score in zip(bars2, top3_scores):
-            ax2.text(
-                bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + 0.01,
-                f"{score:.3f}",
-                ha="center",
-                va="bottom",
-            )
-
-        plt.tight_layout()
-        plt.savefig("results/task1/model_comparison.png", dpi=300, bbox_inches="tight")
-        plt.close()
-
-        # Save results
         results_summary = {
             "best_model": best_model_name,
             "model_performance": {
@@ -304,7 +224,7 @@ class TraditionalMLPipeline:
         with open("results/task1/results_summary.json", "w") as f:
             json.dump(results_summary, f, indent=2)
 
-        print("Reports saved to results/task1/")
+        print("Results saved to results/task1/results_summary.json")
 
     def save_model(self):
         print("Saving trained models...")
@@ -339,20 +259,20 @@ def main():
         # Train models
         pipeline.train_models(X_train_scaled, y_train_encoded)
 
+        # Save scaled validation data for report generation
+        np.save("results/task1/X_val_scaled.npy", X_val_scaled)
+
         # Evaluate models
         results, best_model_name = pipeline.evaluate_models(X_val_scaled, y_val_encoded)
 
-        # Generate reports
-        pipeline.generate_reports(X_val_scaled, y_val_encoded, results, best_model_name)
+        # Save results
+        pipeline.save_results(results, best_model_name)
 
         # Save model
         pipeline.save_model()
 
-        print("\nTask 1 implementation completed successfully!")
-        print("Check results/task1/ for all outputs including:")
-        print("- Model comparison plots")
-        print("- Confusion matrix")
-        print("- Performance metrics")
+        print("\nTask 1 training completed successfully!")
+        print("Run task1_gen_report.py to generate visualizations")
 
     except Exception as e:
         print(f"Error in pipeline: {e}")

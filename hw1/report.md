@@ -225,9 +225,9 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### Task 1: Traditional ML
-- `task1_train.py`
-- Features: Multi-kernel SVM (RBF, Linear, Poly), Random Forest, k-NN
-- Outputs: Model files, confusion matrix, comparison charts
+- `task1_preprocessing.py` -> Extract features and preprocess data
+- `task1_train.py` -> Train models and save results
+- `task1_gen_report.py` -> Generate confusion matrix and comparison charts
 
 </div>
 <div>
