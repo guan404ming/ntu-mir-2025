@@ -137,6 +137,9 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
+![](assets/task2_architecture_diagram.png)
+---
+
 ## Training Configuration
 
 <div class="grid grid-cols-2 gap-4">
@@ -213,3 +216,29 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
   - Top-3 accuracy: +4.33% (78.79% → 83.12%)
 - **Longer audio duration (150s)** captures more musical context
 - **Deep learning** excels at learning complex audio-artist mappings
+
+---
+
+## Implementation & Reproducibility
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+
+### Task 1: Traditional ML
+- `task1_train.py`
+- Features: Multi-kernel SVM (RBF, Linear, Poly), Random Forest, k-NN
+- Outputs: Model files, confusion matrix, comparison charts
+
+</div>
+<div>
+
+### Task 2: Deep Learning
+- `task2_train.py` -> PANNs-based classifier with 150s audio
+- `task2_inference.py` -> Generate predictions for test set
+- `task2_gen_report.py` -> Generates confusion matrix and needed charts
+</div>
+</div>
+
+---
+
+# Thank you for your time!
