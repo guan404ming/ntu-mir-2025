@@ -1,16 +1,19 @@
 ---
 marp: true
 theme: default
-paginate: true
+paginate: false
 backgroundColor: white
 style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ---
 
 # NTU MIR 2025 - Homework 1
-## Task 1: Traditional Machine Learning for Artist Recognition
 
 **Student:** 邱冠銘
 **Student ID:** R14921046
+
+---
+
+# Task 1: Traditional Machine Learning for Artist Recognition
 
 ---
 
@@ -56,7 +59,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ## Traditional ML Models
 
 ### Models Implemented
-- **SVM:** RBF kernel with grid search (C, γ hyperparameters)
+- **SVM:** Multiple kernels (RBF, Linear, Polynomial) with grid search (C, γ, degree hyperparameters)
 - **Random Forest:** Grid search over 100-300 trees with hyperparameter tuning
 - **k-NN:** Grid search over k=3-15 with distance weighting
 
@@ -83,7 +86,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 </div>
 <div>
 
-![](results/task1/model_comparison.png)
+![](assets/task1_model_comparison.png)
 
 </div>
 </div>
@@ -92,15 +95,121 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ## Confusion Matrix - SVM
 
-![bg right:50%](results/task1/confusion_matrix_svm.png)
+![bg right:50%](assets/task1_confusion_matrix_svm.png)
 
 - Strong diagonal indicates good overall classification
-- Some artists more easily distinguishable than others
+- Some artists more easily distinguishable than others (e.g Fleet Wood Mac, Green Day)
 - Confusion often occurs between similar music styles
 
 ---
 
-## Key Findings
+## Key Findings - Task 1
 - **Best Model:** SVM with 57.14% top-1 and 78.79% top-3 accuracy
 - **Feature diversity** and **proper preprocessing** are crucial
 - **SVM with RBF kernel** works well for high-dimensional audio features
+
+---
+
+# Task 2: Deep Learning for Artist Recognition
+
+---
+
+## Deep Learning Architecture
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+
+### PANNs-based Model
+- **Pretrained Features:** PANNs (Pretrained Audio Neural Networks) for feature extraction
+- **Feature Dimension:** 2048-dimensional embeddings from pretrained model
+- **Architecture:** Multi-layer classifier with batch normalization and dropout
+
+</div>
+<div>
+
+### Model Components
+- **Feature Extractor:** PANNs pretrained model (frozen)
+- **Classifier Head:** 4-layer neural network (2048→1024→512→256→20)
+- **Regularization:** Dropout layers (0.3, 0.4, 0.3, 0.2) and BatchNorm1d
+
+</div>
+</div>
+
+---
+
+## Training Configuration
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+
+### Model Settings
+- **Audio Duration:** 150 seconds
+- **Sample Rate:** 16kHz
+- **Batch Size:** 8 samples
+- **Epochs:** 100 maximum
+
+</div>
+<div>
+
+### Training Strategy
+- **Data Augmentation:** Random cropping, noise addition, time stretch
+- **Optimizer:** Adam with weight decay (1e-4)
+- **Learning Rate:** 0.005 with ReduceLROnPlateau scheduler
+- **Early Stopping:** Based on test set performance
+
+</div>
+</div>
+
+---
+
+## Training Progress
+- **Training Loss**: Steady decrease over 100 epochs
+- **Validation Accuracy**: Converged to 60.17%
+- **Learning Curve**: Shows proper convergence without overfitting
+
+![bg right:50%](assets/task2_training_progress.png)
+
+---
+
+## Results
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+
+| Metric | Performance |
+|--------|-------------|
+| Val Top-1 Accuracy | 60.17% |
+| Val Top-3 Accuracy | 83.12% |
+
+- **Top-1:** +3.03% over SVM
+- **Top-3:** +4.33% over SVM
+
+</div>
+<div>
+
+![](assets/task2_model_comparison.png)
+
+</div>
+</div>
+
+---
+
+## Confusion Matrix - Deep Learning
+
+![bg right:50%](assets/task2_confusion_matrix_panns.png)
+
+### Observations
+- Similar performance to SVM in top-1 accuracy
+- **Superior top-3 accuracy** (83.12% vs 78.79%)
+- Strong performance on popular artists (Beatles, Fleetwood Mac)
+- Better generalization with pretrained features
+
+---
+
+## Key Findings - Task 2
+- **PANNs pretrained features** provide rich 2048-dimensional embeddings
+- **Performance Improvements** over traditional ML:
+  - Top-1 accuracy: +3.03% (57.14% → 60.17%)
+  - Top-3 accuracy: +4.33% (78.79% → 83.12%)
+- **Longer audio duration (150s)** captures more musical context
+- **Deep learning** excels at learning complex audio-artist mappings
