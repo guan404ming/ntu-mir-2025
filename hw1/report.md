@@ -219,6 +219,18 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
+# Tutorial
+
+---
+
+## Quick Start
+- Link: https://drive.google.com/file/d/1zpGiya4O_AF6SqTxcd-alf4x9OWGaY9R/view
+- Steps:
+    - `pip install -r requirements.txt` -> Install dependencies
+    - `bash get_dataset.sh` -> Download dataset
+    - `python task2_inference.py` -> Inference
+---
+
 ## Implementation & Reproducibility
 
 <div class="grid grid-cols-2 gap-4">
