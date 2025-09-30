@@ -9,6 +9,7 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
 from tqdm import tqdm
+import torch
 import warnings
 
 warnings.filterwarnings("ignore")
