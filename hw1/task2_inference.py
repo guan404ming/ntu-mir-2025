@@ -4,6 +4,7 @@ import numpy as np
 import json
 import librosa
 import os
+import argparse
 from sklearn.preprocessing import LabelEncoder
 from tqdm import tqdm
 import warnings
@@ -128,7 +129,7 @@ def predict_single_file(model, audio_tensor, label_encoder, device, top_k=3):
         probabilities = torch.softmax(outputs, dim=1)
 
         # Get top-k predictions
-        top_probs, top_indices = torch.topk(probabilities, k=top_k, dim=1)
+        _, top_indices = torch.topk(probabilities, k=top_k, dim=1)
 
         # Convert to artist names
         predictions = []
@@ -186,45 +187,78 @@ def inference_on_test_data(
 
 
 def main():
-    # Configuration
-    model_path = "assets/best_panns_model.pth"
-    train_json_path = "data/artist20/train.json"
-    test_dir = "data/artist20/test"
-    output_path = "results/task2/test_predictions.json"
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Run inference on test data using trained PANNs model"
+    )
+    parser.add_argument(
+        "--model_path",
+        type=str,
+        default="assets/best_panns_model.pth",
+        help="Path to trained model file (default: assets/best_panns_model.pth)",
+    )
+    parser.add_argument(
+        "--train_json",
+        type=str,
+        default="data/artist20/train.json",
+        help="Path to training JSON for label encoder (default: data/artist20/train.json)",
+    )
+    parser.add_argument(
+        "--test_dir",
+        type=str,
+        default="data/artist20/test",
+        help="Path to test data directory (default: data/artist20/test)",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="r14921046.json",
+        help="Path to output predictions file (default: r14921046.json)",
+    )
+
+    args = parser.parse_args()
+
+    # Fixed duration matching training configuration
     DURATION = 150
 
-    # Create results directory if it doesn't exist
-    os.makedirs("results/task2", exist_ok=True)
+    # Create output directory if needed
+    output_dir = os.path.dirname(args.output)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
 
     # Check if model exists
-    if not os.path.exists(model_path):
-        print(f"Error: Model file not found at {model_path}")
-        print("Please make sure you have trained the model first using task2_panns.py")
+    if not os.path.exists(args.model_path):
+        print(f"Error: Model file not found at {args.model_path}")
+        print("Please make sure you have trained the model first using task2_train.py")
         return
 
     # Check if test directory exists
-    if not os.path.exists(test_dir):
-        print(f"Error: Test directory not found at {test_dir}")
+    if not os.path.exists(args.test_dir):
+        print(f"Error: Test directory not found at {args.test_dir}")
         print("Please make sure the dataset is properly downloaded and extracted")
         return
 
     print("Starting inference on test data...")
+    print(f"Model: {args.model_path}")
+    print(f"Test directory: {args.test_dir}")
+    print(f"Output: {args.output}")
+    print(f"Audio duration: {DURATION}s")
 
     # Run inference
     predictions = inference_on_test_data(
-        model_path=model_path,
-        train_json_path=train_json_path,
-        test_dir=test_dir,
-        output_path=output_path,
-        duration=DURATION,  # Use same duration as training
+        model_path=args.model_path,
+        train_json_path=args.train_json,
+        test_dir=args.test_dir,
+        output_path=args.output,
+        duration=DURATION,
     )
 
     print("\nInference completed!")
-    print(f"Predictions saved to: {output_path}")
+    print(f"Predictions saved to: {args.output}")
 
     # Show sample predictions
     print("\nSample predictions:")
-    for i, (file_id, preds) in enumerate(list(predictions.items())[:5]):
+    for file_id, preds in list(predictions.items())[:5]:
         print(f"{file_id}: {preds}")
 
 
