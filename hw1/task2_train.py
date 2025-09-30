@@ -11,8 +11,6 @@ from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 import warnings
 from panns_inference import AudioTagging
-import subprocess
-import tempfile
 from glob import glob
 
 warnings.filterwarnings("ignore")
@@ -198,68 +196,10 @@ class PANNsClassifier(nn.Module):
         return output
 
 
-def evaluate_test_set(model, test_loader, label_encoder, epoch):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.eval()
-
-    predictions = {}
-
-    with torch.no_grad():
-        for audio, file_ids in tqdm(test_loader, desc="Testing"):
-            audio = audio.to(device)
-            outputs = model(audio)
-
-            # Get top-3 predictions for each sample
-            _, top3_indices = torch.topk(outputs, 3, dim=1)
-
-            for i, file_id in enumerate(file_ids):
-                top3_artists = [
-                    label_encoder.classes_[idx] for idx in top3_indices[i].cpu().numpy()
-                ]
-                predictions[file_id] = top3_artists
-
-    # Save predictions to temporary file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        json.dump(predictions, f, indent=2)
-        temp_pred_path = f.name
-
-    # Run count_score.py to get evaluation metrics
-    try:
-        result = subprocess.run(
-            ["python", "count_score.py", "test_ans.json", temp_pred_path],
-            capture_output=True,
-            text=True,
-            cwd=os.getcwd(),
-        )
-
-        if result.returncode == 0:
-            lines = result.stdout.strip().split("\n")
-            if len(lines) >= 2:
-                top1_acc = float(lines[0])
-                top3_acc = float(lines[1])
-                return top1_acc, top3_acc
-            else:
-                print(f"Epoch {epoch}: Error parsing count_score.py output")
-        else:
-            print(f"Epoch {epoch}: Error running count_score.py: {result.stderr}")
-    except Exception as e:
-        print(f"Epoch {epoch}: Exception running count_score.py: {e}")
-    finally:
-        # Clean up temporary file
-        try:
-            os.unlink(temp_pred_path)
-        except Exception:
-            pass
-
-    return 0.0, 0.0
-
-
 def train_model(
     model,
     train_loader,
     val_loader,
-    test_loader,
-    label_encoder,
     num_epochs=50,
     lr=0.001,
     duration=120,
@@ -288,11 +228,7 @@ def train_model(
         optimizer, mode="max", factor=0.5, patience=5
     )
 
-    train_losses = []
-    val_losses = []
-    val_accuracies = []
-    # best_val_acc = 0.0
-    best_test_acc = 0.0
+    best_val_acc = 0.0
 
     for epoch in range(num_epochs):
         # Training
@@ -300,7 +236,7 @@ def train_model(
         train_loss = 0.0
         train_pbar = tqdm(train_loader, desc=f"Epoch {epoch + 1}/{num_epochs} [Train]")
 
-        for batch_idx, (audio, labels) in enumerate(train_pbar):
+        for audio, labels in train_pbar:
             audio, labels = audio.to(device), labels.to(device)
 
             optimizer.zero_grad()
@@ -313,12 +249,12 @@ def train_model(
             train_pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
 
         avg_train_loss = train_loss / len(train_loader)
-        train_losses.append(avg_train_loss)
 
         # Validation
         model.eval()
         val_loss = 0.0
-        all_preds = []
+        all_preds_top1 = []
+        all_preds_top3 = []
         all_labels = []
 
         with torch.no_grad():
@@ -330,52 +266,51 @@ def train_model(
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
 
-                _, predicted = torch.max(outputs.data, 1)
-                all_preds.extend(predicted.cpu().numpy())
+                # Top-1 predictions
+                _, predicted_top1 = torch.max(outputs.data, 1)
+                all_preds_top1.extend(predicted_top1.cpu().numpy())
+
+                # Top-3 predictions
+                _, predicted_top3 = torch.topk(outputs.data, 3, dim=1)
+                all_preds_top3.extend(predicted_top3.cpu().numpy())
+
                 all_labels.extend(labels.cpu().numpy())
 
                 val_pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
 
         avg_val_loss = val_loss / len(val_loader)
-        val_acc = accuracy_score(all_labels, all_preds)
 
-        val_losses.append(avg_val_loss)
-        val_accuracies.append(val_acc)
+        # Calculate top-1 accuracy
+        val_acc_top1 = accuracy_score(all_labels, all_preds_top1)
+
+        # Calculate top-3 accuracy
+        val_acc_top3 = sum(
+            1 for i, label in enumerate(all_labels) if label in all_preds_top3[i]
+        ) / len(all_labels)
+
+        # Calculate combined score
+        val_score = val_acc_top1 + val_acc_top3 * 0.5
 
         print(
-            f"Epoch {epoch + 1}: Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}, Val Acc: {val_acc:.4f}"
+            f"Epoch {epoch + 1}: Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}, "
+            f"Val Top-1 Acc: {val_acc_top1:.4f}, Val Top-3 Acc: {val_acc_top3:.4f}, Val Score: {val_score:.4f}"
         )
 
-        # Save best model
-        # if val_acc > best_val_acc:
-        #     best_val_acc = val_acc
-        #     torch.save(model.state_dict(), "results/task2/best_panns_improved_model.pth")
-        #     print(f"New best model saved with validation accuracy: {best_val_acc:.4f}")
-
-        # Evaluate on test set
-        test_top1, test_top3 = evaluate_test_set(
-            model, test_loader, label_encoder, epoch + 1
-        )
-        score = test_top1 + test_top3 * 0.5
-        print(
-            f"Epoch {epoch + 1}: Test Top-1 Accuracy: {test_top1:.4f}, Test Top-3 Accuracy: {test_top3:.4f}, Test Score: {score:.4f}"
-        )
-        if score > best_test_acc:
-            best_test_acc = test_top1 + test_top3 * 0.5
+        # Save best model based on validation score
+        if val_score > best_val_acc:
+            best_val_acc = val_score
             torch.save(
                 model.state_dict(),
-                f"results/task2/best_panns_duration_{duration}_score_{score:.4f}_model.pth",
+                f"results/task2/best_panns_duration_{duration}_score_{val_score:.4f}_model.pth",
             )
-            print(f"New best model saved with test score: {score:.4f}")
+            print(f"New best model saved with validation score: {best_val_acc:.4f}")
 
         # Step scheduler and check if learning rate changed
         old_lr = optimizer.param_groups[0]["lr"]
-        scheduler.step(val_acc)
+        scheduler.step(val_score)
         new_lr = optimizer.param_groups[0]["lr"]
         if new_lr != old_lr:
             print(f"Learning rate reduced from {old_lr:.2e} to {new_lr:.2e}")
-
-    return train_losses, val_losses, val_accuracies
 
 
 def main():
@@ -400,9 +335,6 @@ def main():
         val_dataset.labels
     )
 
-    # Create test dataset
-    test_dataset = TestDataset(duration=DURATION)
-
     # Create data loaders with larger batch size
     batch_size = 8
     train_loader = DataLoader(
@@ -410,9 +342,6 @@ def main():
     )
     val_loader = DataLoader(
         val_dataset, batch_size=batch_size, shuffle=False, num_workers=0
-    )
-    test_loader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, num_workers=0
     )
 
     print(f"Training samples: {len(train_dataset)}")
@@ -424,19 +353,16 @@ def main():
     model = PANNsClassifier(num_classes, fine_tune=False)  # Start without fine-tuning
 
     print("Starting improved training...")
-    train_losses, val_losses, val_accuracies = train_model(
+    train_model(
         model,
         train_loader,
         val_loader,
-        test_loader,
-        train_dataset.label_encoder,
         num_epochs=EPOCHS,
         lr=0.005,
         duration=DURATION,  # Lower learning rate
     )
 
     print("\nImproved training completed!")
-    print(f"Best validation accuracy: {max(val_accuracies):.4f}")
 
 
 if __name__ == "__main__":

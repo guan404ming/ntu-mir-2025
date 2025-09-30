@@ -187,7 +187,7 @@ def inference_on_test_data(
 
 def main():
     # Configuration
-    model_path = "results/task2/best_panns_duration_150_score_1.0043_model.pth"
+    model_path = "assets/best_panns_model.pth"
     train_json_path = "data/artist20/train.json"
     test_dir = "data/artist20/test"
     output_path = "results/task2/test_predictions.json"
