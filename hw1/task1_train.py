@@ -87,12 +87,13 @@ class TraditionalMLPipeline:
             unit="model",
             colour="blue",
         ) as pbar:
-            # 1. Support Vector Machine with RBF kernel (best for audio classification)
+            # 1. Support Vector Machine with multiple kernels
             pbar.set_description("Training SVM")
             svm_params = {
                 "C": [0.1, 1, 10, 100],
                 "gamma": ["scale", "auto", 0.001, 0.01, 0.1],
-                "kernel": ["rbf"],
+                "kernel": ["rbf", "linear", "poly"],
+                "degree": [2, 3],  # Only used for poly kernel
             }
 
             svm = SVC(probability=True, random_state=42)
