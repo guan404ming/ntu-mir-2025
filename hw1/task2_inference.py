@@ -8,16 +8,85 @@ import argparse
 from sklearn.preprocessing import LabelEncoder
 from tqdm import tqdm
 import warnings
-from panns_inference import AudioTagging
+import urllib.request
+from pathlib import Path
 
 warnings.filterwarnings("ignore")
+
+
+def download_panns_files():
+    """Download all required PANNs files using cross-platform approach"""
+    assets_dir = "assets"
+    os.makedirs(assets_dir, exist_ok=True)
+
+    # Download checkpoint
+    checkpoint_path = os.path.join(assets_dir, "Cnn14_mAP=0.431.pth")
+    if not os.path.exists(checkpoint_path) or os.path.getsize(checkpoint_path) < 3e8:
+        print(f"Downloading PANNs checkpoint to: {checkpoint_path}")
+        print("This may take a few minutes...")
+        try:
+            url = "https://zenodo.org/record/3987831/files/Cnn14_mAP%3D0.431.pth?download=1"
+            urllib.request.urlretrieve(url, checkpoint_path)
+            print("Checkpoint download completed!")
+        except Exception as e:
+            print(f"Error downloading checkpoint: {e}")
+            raise
+
+    # Download class labels CSV
+    labels_csv_path = os.path.join(assets_dir, "class_labels_indices.csv")
+    if not os.path.exists(labels_csv_path):
+        print(f"Downloading class labels to: {labels_csv_path}")
+        try:
+            url = "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv"
+            urllib.request.urlretrieve(url, labels_csv_path)
+            print("Labels download completed!")
+        except Exception as e:
+            print(f"Error downloading labels: {e}")
+            raise
+
+    return checkpoint_path, labels_csv_path
+
+
+def setup_panns_environment():
+    """Set up PANNs environment with downloaded files"""
+    checkpoint_path, labels_csv_path = download_panns_files()
+
+    # Create symbolic links or copy files to expected locations if needed
+    home_panns_dir = os.path.join(str(Path.home()), "panns_data")
+    os.makedirs(home_panns_dir, exist_ok=True)
+
+    home_checkpoint = os.path.join(home_panns_dir, "Cnn14_mAP=0.431.pth")
+    home_labels = os.path.join(home_panns_dir, "class_labels_indices.csv")
+
+    # Copy files if they don't exist in home directory
+    if not os.path.exists(home_checkpoint):
+        import shutil
+
+        shutil.copy2(checkpoint_path, home_checkpoint)
+        print(f"Copied checkpoint to {home_checkpoint}")
+
+    if not os.path.exists(home_labels):
+        import shutil
+
+        shutil.copy2(labels_csv_path, home_labels)
+        print(f"Copied labels to {home_labels}")
+
+    return checkpoint_path
 
 
 class PANNsClassifier(nn.Module):
     def __init__(self, num_classes, feature_dim=2048, fine_tune=False):
         super().__init__()
+
+        # Set up PANNs environment and download required files
+        checkpoint_path = setup_panns_environment()
+
+        # Import AudioTagging after setting up the environment
+        from panns_inference import AudioTagging
+
         self.panns = AudioTagging(
-            checkpoint_path=None, device="cuda" if torch.cuda.is_available() else "cpu"
+            checkpoint_path=checkpoint_path,
+            device="cuda" if torch.cuda.is_available() else "cpu",
         )
         self.feature_dim = feature_dim
         self.fine_tune = fine_tune
