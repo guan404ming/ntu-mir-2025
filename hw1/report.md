@@ -23,6 +23,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### Core Features
+
 - **MFCC Features:** 20 coefficients + Delta (velocity) + Delta-Delta (acceleration)
 - **Mel Spectrogram:** 128 mel frequency bins with statistical aggregation
 - **Spectral Features:** Centroid, Bandwidth (frequency-weighted), Rolloff (mel energy sum)
@@ -31,6 +32,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### Additional Features
+
 - **Energy Features:** RMS Energy with temporal statistics
 - **Rhythm Features:** Zero Crossing Rate, Tempo (from onset strength detection)
 - **Advanced Features:**
@@ -45,11 +47,13 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ## Preprocessing Pipeline
 
 ### Data Processing Steps
+
 - **RobustScaler** for outlier resistance
 - **Feature Selection** (SelectKBest, top 100 features)
 - **Statistical Aggregation** (mean, std, max, min over time)
 
 ### Feature Engineering
+
 - **400+ dimensional features** → reduced to 100 via feature selection
 - **GPU-accelerated extraction** with PyTorch for efficiency
 - **Robust preprocessing** to handle NaN/inf values
@@ -59,11 +63,13 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ## Traditional ML Models
 
 ### Models Implemented
+
 - **SVM:** Multiple kernels (RBF, Linear, Polynomial) with grid search (C, γ, degree hyperparameters)
 - **Random Forest:** Grid search over 100-300 trees with hyperparameter tuning
 - **k-NN:** Grid search over k=3-15 with distance weighting
 
 ### Training Process
+
 - **5-fold cross-validation** for hyperparameter tuning
 - **Grid search** for optimal hyperparameters
 - **Stratified validation** to ensure balanced evaluation
@@ -71,8 +77,6 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ---
 
 ## Model Comparison
-
-
 
 <div class="grid grid-cols-2 gap-4">
 <div>
@@ -104,6 +108,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ---
 
 ## Key Findings - Task 1
+
 - **Best Model:** SVM with 57.14% top-1 and 78.79% top-3 accuracy
 - **Feature diversity** and **proper preprocessing** are crucial
 - **SVM with RBF kernel** works well for high-dimensional audio features
@@ -120,6 +125,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### PANNs-based Model
+
 - **Pretrained Features:** PANNs (Pretrained Audio Neural Networks) for feature extraction
 - **Feature Dimension:** 2048-dimensional embeddings from pretrained model
 - **Architecture:** Multi-layer classifier with batch normalization and dropout
@@ -128,6 +134,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### Model Components
+
 - **Feature Extractor:** PANNs pretrained model (frozen)
 - **Classifier Head:** 4-layer neural network (2048→1024→512→256→20)
 - **Regularization:** Dropout layers (0.3, 0.4, 0.3, 0.2) and BatchNorm1d
@@ -146,6 +153,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### Model Settings
+
 - **Audio Duration:** 150 seconds
 - **Sample Rate:** 16kHz
 - **Batch Size:** 8 samples
@@ -155,6 +163,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### Training Strategy
+
 - **Data Augmentation:** Random cropping, noise addition, time stretch
 - **Optimizer:** Adam with weight decay (1e-4)
 - **Learning Rate:** 0.005 with ReduceLROnPlateau scheduler
@@ -166,6 +175,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ---
 
 ## Training Progress
+
 - **Training Loss**: Steady decrease over 100 epochs
 - **Validation Accuracy**: Converged to 60.17%
 - **Learning Curve**: Shows proper convergence without overfitting
@@ -202,6 +212,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ![bg right:50%](assets/task2_confusion_matrix_panns.png)
 
 ### Observations
+
 - Similar performance to SVM in top-1 accuracy
 - **Superior top-3 accuracy** (83.12% vs 78.79%)
 - Strong performance on popular artists (Beatles, Fleetwood Mac)
@@ -210,6 +221,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ---
 
 ## Key Findings - Task 2
+
 - **PANNs pretrained features** provide rich 2048-dimensional embeddings
 - **Performance Improvements** over traditional ML:
   - Top-1 accuracy: +3.03% (57.14% → 60.17%)
@@ -224,11 +236,13 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ---
 
 ## Quick Start
-- Link: https://drive.google.com/file/d/1zpGiya4O_AF6SqTxcd-alf4x9OWGaY9R/view
+
+- Link: <https://drive.google.com/file/d/1zpGiya4O_AF6SqTxcd-alf4x9OWGaY9R/view>
 - Steps:
-    - `pip install -r requirements.txt` -> Install dependencies
-    - `bash get_dataset.sh` -> Download dataset
-    - `python task2_inference.py` -> Inference
+  - `pip install -r requirements.txt` -> Install dependencies
+  - `bash get_dataset.sh` -> Download dataset
+  - `python task2_inference.py` -> Inference
+
 ---
 
 ## Implementation & Reproducibility
@@ -237,6 +251,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### Task 1: Traditional ML
+
 - `task1_preprocessing.py` -> Extract features and preprocess data
 - `task1_train.py` -> Train models and save results
 - `task1_gen_report.py` -> Generate confusion matrix and comparison charts
@@ -245,13 +260,15 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 <div>
 
 ### Task 2: Deep Learning
+
 - `task2_train.py` -> PANNs-based classifier with 150s audio
 - `task2_inference.py` -> Generate predictions for test set
 - `task2_gen_report.py` -> Generates confusion matrix and needed charts
+
 </div>
 </div>
 
---- 
+---
 
 ## References
 
@@ -262,4 +279,4 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-# Thank you for your time!
+# Thank you for your time
