@@ -7,3 +7,4 @@ matplotlib==3.10.6
 seaborn==0.13.2
 tqdm==4.67.1
 panns-inference==0.1.1
+gdown==5.2.0
