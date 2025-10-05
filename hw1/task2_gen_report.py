@@ -10,7 +10,7 @@ import json
 import librosa
 import os
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+from sklearn.metrics import confusion_matrix, accuracy_score
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -211,7 +211,7 @@ def evaluate_validation_set(
     top3_accuracy = top3_correct / len(true_labels_encoded)
 
     print(f"\n{'=' * 50}")
-    print(f"Validation Set Results:")
+    print("Validation Set Results:")
     print(f"{'=' * 50}")
     print(f"Val Top-1 Accuracy: {top1_accuracy:.4f} ({top1_accuracy * 100:.2f}%)")
     print(f"Val Top-3 Accuracy: {top3_accuracy:.4f} ({top3_accuracy * 100:.2f}%)")
@@ -228,7 +228,7 @@ def generate_confusion_matrix(model, label_encoder, device, val_json_path, outpu
     val_dataset = Artist20Dataset(val_json_path, duration=150)
     val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=0)
 
-    val_encoded_labels = label_encoder.transform(val_dataset.labels)
+    label_encoder.transform(val_dataset.labels)
 
     all_predictions = []
     all_true_labels = []
@@ -546,7 +546,7 @@ def main():
     with open("results/task2/val_set_evaluation.json", "w") as f:
         json.dump(results, f, indent=2)
 
-    print(f"\nResults saved to results/task2/val_set_evaluation.json")
+    print("\nResults saved to results/task2/val_set_evaluation.json")
 
     # Step 3: Generate confusion matrix
     print("\n" + "=" * 60)
@@ -592,10 +592,10 @@ def main():
     print("  - task2_training_progress.png")
     print("  - task2_model_comparison.png")
     print("  - task2_architecture_diagram.png")
-    print(f"\nValidation Results:")
+    print("\nValidation Results:")
     print(f"  - Top-1 Accuracy: {top1_acc * 100:.2f}%")
     print(f"  - Top-3 Accuracy: {top3_acc * 100:.2f}%")
-    print(f"  - Improvement over SVM:")
+    print("  - Improvement over SVM:")
     print(f"    - Top-1: +{(top1_acc - task1_results['top1']) * 100:.2f}%")
     print(f"    - Top-3: +{(top3_acc - task1_results['top3']) * 100:.2f}%")
     print("=" * 60)
