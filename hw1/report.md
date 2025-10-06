@@ -222,27 +222,28 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-## Model 1: Confusion Matrix
+## Confusion Matrices
 
-![bg right:60%](assets/task2_confusion_matrix_panns.png)
+<div class="grid grid-cols-2 gap-4">
+<div>
 
-- Strong diagonal pattern
-- Superior top-3 accuracy
-- Pretrained features effective
+![](assets/task2_confusion_matrix_panns.png)
 
----
+</div>
+<div>
 
-## Model 2: Confusion Matrix
+![](assets/task2_confusion_matrix_resnet.png)
 
-![bg right:60%](assets/task2_confusion_matrix_resnet.png)
-
-- **Best performance** achieved
-- End-to-end learning effective
-- No pretrained dependency needed
+</div>
+</div>
 
 ---
 
 ![](assets/task2_all_models_comparison.png)
+
+---
+
+![](assets/task2_tsne_comparison.png)
 
 ---
 
@@ -263,7 +264,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 - Top-1: **+12.56%**
 - Top-3: **+6.06%**
-- Params: 2.7M vs 81M+ 🎯
+- Params: 2.7M vs 81M+
 
 </div>
 </div>
@@ -272,46 +273,20 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ## Key Insights
 
-<div class="grid grid-cols-3 gap-4">
-<div>
+**Deep Learning vs Traditional ML - The Performance Gap:**
 
-### Transfer Learning
-
-- Pretrained features
-- 2048-dim embeddings
-- Less training needed
-- Good baseline
-
-</div>
-<div>
-
-### End-to-End
-
-- **Best: 72.73% / 89.18%**
-- Mixup + label smoothing
-- Compact model
-- No pretrained needed
-
-</div>
-<div>
-
-### Success Factors
-
-- 150s audio
-- Deep learning >> ML
-- Augmentation crucial
-- Regularization key
-
-</div>
-</div>
+- **Feature learning advantage**: Deep learning automatically discovers hierarchical audio patterns (spectral, temporal, timbral) while SVM relies on hand-crafted MFCC features
+- **Representation power**: ResNet's 2.7M parameters capture complex artist signatures vs. SVM's linear decision boundaries with limited expressiveness
+- **Data utilization**: Neural networks excel at extracting patterns from raw audio across 150s duration, while traditional ML struggles with high-dimensional feature spaces
+- **Why ResNet > PANNs**: Task-specific end-to-end training learns artist-discriminative features directly, while transfer learning from AudioSet general audio events doesn't align well with music artist classification domain
 
 ---
 
-# Tutorial
+# Quick Start
 
 ---
 
-## Quick Start
+## Inference Steps
 
 - Link: <https://drive.google.com/file/d/1zpGiya4O_AF6SqTxcd-alf4x9OWGaY9R/view>
 - Steps:
