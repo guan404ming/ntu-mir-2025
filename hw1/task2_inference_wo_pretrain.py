@@ -167,7 +167,7 @@ def main():
     BATCH_SIZE = 32
     CHECKPOINT_PATH = "results/task2/best_resnet_model_150s.pth"
     LABEL_ENCODER_PATH = "results/task2/label_encoder_resnet_150s.pkl"
-    OUTPUT_JSON = "r14921046_wo_pretrain.json"
+    OUTPUT_JSON = "r14921046.json"
 
     print("\nConfiguration:")
     print(f"  Duration: {DURATION}s | Batch: {BATCH_SIZE}")
