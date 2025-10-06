@@ -22,14 +22,7 @@ bash get_dataset.sh
 
 ```bash
 # Outputs: r14921046.json
-python task2_inference.py 
-
-# For specific output path, test directory, model path, and train JSON path
-python task2_inference.py \
-    --output r14921046.json \
-    --test_dir data/artist20/test \
-    --model_path assets/best_panns_model.pth \
-    --train_json data/artist20/train.json
+python task2_inference_wo_pretrain.py 
 ```
 
 ### Training
