@@ -12,12 +12,14 @@ This project implements artist recognition on the Artist20 dataset using both tr
 ## Quick Start
 
 ### Setup
+
 ```bash
 pip install -r requirements.txt
 bash get_dataset.sh
 ```
 
 ### Inference (Generate Test Predictions)
+
 ```bash
 # Outputs: r14921046.json
 python task2_inference.py 
@@ -33,6 +35,7 @@ python task2_inference.py \
 ### Training
 
 **Task 1 - Traditional ML:**
+
 ```bash
 python task1_preprocessing.py  # Extract features
 python task1_train.py          # Train SVM, Random Forest, k-NN
@@ -40,13 +43,22 @@ python task1_gen_report.py     # Generate visualizations
 ```
 
 **Task 2 - Deep Learning:**
+
 ```bash
 python task2_train.py          # Train PANNs-based model
 python task2_gen_report.py     # Generate visualizations
 ```
 
+**Task 2 - Deep Learning (ResNet):**
+
+```bash
+python task2_train_wo_pretrain.py  # Train ResNet-based model
+python task2_inference_wo_pretrain.py  # Generate test predictions
+python task2_gen_report_wo_pretrain.py  # Generate visualizations
+```
 
 ### Evaluation
+
 ```bash
 python count_score.py ./data/test_ans.json ./r14921046.json
 ```
@@ -60,7 +72,7 @@ python count_score.py ./data/test_ans.json ./r14921046.json
 
 ## Project Structure
 
-```
+```bash
 ├── task1_preprocessing.py    # Feature extraction for traditional ML
 ├── task1_train.py            # Train traditional ML models
 ├── task1_gen_report.py       # Generate Task 1 visualizations

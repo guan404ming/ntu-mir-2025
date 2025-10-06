@@ -146,7 +146,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-## Model 1 (PANNs): Configuration
+## Model 1 - PANNs
 
 <div class="grid grid-cols-2 gap-4">
 <div>
@@ -178,33 +178,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-## Model 1: Results
-
-### Performance
-
-| Metric | Score |
-|--------|-------|
-| **Top-1** | **60.17%** |
-| **Top-3** | **83.12%** |
-| vs SVM | +3.03% / +4.33% |
-
----
-
-## Model 1: Confusion Matrix
-
-![bg right:60%](assets/task2_confusion_matrix_panns.png)
-
-- Strong diagonal pattern
-- Superior top-3 accuracy
-- Pretrained features effective
-
----
-
-![](assets/task2_architecture_diagram_resnet.png)
-
----
-
-## Model 2: Configuration
+## Model 2 - ResNet
 
 <div class="grid grid-cols-2 gap-4">
 <div>
@@ -234,7 +208,11 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-## Model 2: Results
+![](assets/task2_architecture_diagram_resnet.png)
+
+---
+
+## Results
 
 <div class="grid grid-cols-2 gap-4">
 <div>
@@ -260,6 +238,16 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 </div>
 </div>
+
+---
+
+## Model 1: Confusion Matrix
+
+![bg right:60%](assets/task2_confusion_matrix_panns.png)
+
+- Strong diagonal pattern
+- Superior top-3 accuracy
+- Pretrained features effective
 
 ---
 
@@ -364,7 +352,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ## Implementation & Reproducibility
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-3 gap-4">
 <div>
 
 ### Task 1: Traditional ML
@@ -376,15 +364,16 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 </div>
 <div>
 
-### Task 2: Deep Learning
-
-**PANNs Model (Pretrained):**
+### Task 2: PANNs Model
 
 - `task2_train.py` -> PANNs-based classifier with 150s audio
 - `task2_inference.py` -> Generate predictions for test set
 - `task2_gen_report.py` -> Generates confusion matrix and charts
 
-**ResNet CNN (No Pretrain):**
+</div>
+<div>
+
+### Task 2: ResNet CNN 🏆
 
 - `task2_train_wo_pretrain.py` -> ResNet CNN from scratch
 - `task2_inference_wo_pretrain.py` -> Generate predictions
