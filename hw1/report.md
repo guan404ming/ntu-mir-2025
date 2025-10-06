@@ -292,7 +292,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 - Steps:
   - `pip install -r requirements.txt` -> Install dependencies
   - `bash get_dataset.sh` -> Download dataset
-  - `python task2_inference.py` -> Inference
+  - `python task2_inference_wo_pretrain.py` -> Inference
 
 ---
 

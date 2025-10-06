@@ -250,10 +250,21 @@ def main():
                 top3_artists = label_encoder.inverse_transform(top3_indices[i])
                 predictions[file_id] = top3_artists.tolist()
 
-    # Save predictions
+    # Sort predictions by file ID
+    sorted_predictions = dict(sorted(predictions.items()))
+
+    # Save predictions with compact format
     print(f"\nSaving predictions to {OUTPUT_JSON}...")
     with open(OUTPUT_JSON, "w") as f:
-        json.dump(predictions, f, indent=4)
+        f.write("{\n")
+        items = list(sorted_predictions.items())
+        for i, (file_id, artists) in enumerate(items):
+            artists_str = json.dumps(artists)
+            if i < len(items) - 1:
+                f.write(f'    "{file_id}": {artists_str},\n')
+            else:
+                f.write(f'    "{file_id}": {artists_str}\n')
+        f.write("}\n")
 
     print(f"\n{'=' * 70}")
     print("Inference complete!")
