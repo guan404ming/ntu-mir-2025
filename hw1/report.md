@@ -212,32 +212,13 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-## Results
+## Model Comparison Table
 
-<div class="grid grid-cols-2 gap-4">
-<div>
-
-### Performance 🏆
-
-| Metric | Score |
-|--------|-------|
-| **Top-1** | **72.73%** |
-| **Top-3** | **89.18%** |
-| vs SVM | +15.59% / +10.39% |
-| vs PANNs | +12.56% / +6.06% |
-
-</div>
-<div>
-
-### Key Highlights
-
-- ✅ **Best overall performance**
-- ✅ No pretrained weights
-- ✅ Compact (2.7M params)
-- ✅ End-to-end learning
-
-</div>
-</div>
+| Model | Type | Top-1 | Top-3 | Advantage |
+|-------|------|-------|-------|-----------|
+| SVM | Traditional ML | 57.14% | 78.79% | Fast, interpretable |
+| PANNs | Transfer Learning | 60.17% | 83.12% | Pretrained |
+| **ResNet** | **End-to-end DL** | **72.73%** | **89.18%** | **Best** |
 
 ---
 
@@ -262,16 +243,6 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ---
 
 ![](assets/task2_all_models_comparison.png)
-
----
-
-## Model Comparison Table
-
-| Model | Type | Top-1 | Top-3 | Advantage |
-|-------|------|-------|-------|-----------|
-| SVM | Traditional ML | 57.14% | 78.79% | Fast, interpretable |
-| PANNs | Transfer Learning | 60.17% | 83.12% | Pretrained |
-| **ResNet** | **End-to-end DL** | **72.73%** | **89.18%** | **Best** |
 
 ---
 

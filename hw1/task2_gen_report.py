@@ -277,8 +277,6 @@ def generate_confusion_matrix(model, label_encoder, device, val_json_path, outpu
 # ============================================================================
 
 
-
-
 def create_model_comparison_chart(task1_results, task2_results, output_dir):
     """Create comparison between Task 1 and Task 2"""
 

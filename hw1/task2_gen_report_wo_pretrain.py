@@ -284,9 +284,7 @@ def evaluate_validation_set(model, label_encoder, device, val_json_path):
     return top1_accuracy, top3_accuracy, all_preds_top1, all_labels
 
 
-def generate_confusion_matrix(
-    model, label_encoder, device, val_json_path, output_dir
-):
+def generate_confusion_matrix(model, label_encoder, device, val_json_path, output_dir):
     """Generate confusion matrix for validation set"""
 
     print("\nGenerating confusion matrix...")
@@ -347,9 +345,7 @@ def generate_confusion_matrix(
     )
     plt.close()
 
-    print(
-        f"Confusion matrix saved to {output_dir}/task2_confusion_matrix_resnet.png"
-    )
+    print(f"Confusion matrix saved to {output_dir}/task2_confusion_matrix_resnet.png")
 
     # Print classification report
     print("\nClassification Report:")
@@ -483,7 +479,11 @@ def create_model_comparison_chart(task1_results, task2_panns, task2_resnet, outp
 
     print("Generating comprehensive model comparison chart...")
 
-    models = ["Traditional ML\n(SVM)", "Deep Learning\n(PANNs)", "Deep Learning\n(ResNet CNN)"]
+    models = [
+        "Traditional ML\n(SVM)",
+        "Deep Learning\n(PANNs)",
+        "Deep Learning\n(ResNet CNN)",
+    ]
     top1_acc = [
         task1_results["top1"] * 100,
         task2_panns["top1"] * 100,
@@ -517,7 +517,6 @@ def create_model_comparison_chart(task1_results, task2_panns, task2_resnet, outp
         alpha=0.8,
     )
 
-    ax.set_xlabel("Model Type", fontsize=12)
     ax.set_ylabel("Accuracy (%)", fontsize=12)
     ax.set_title(
         "Model Performance Comparison: Traditional ML vs Deep Learning",
@@ -560,7 +559,9 @@ def create_model_comparison_chart(task1_results, task2_panns, task2_resnet, outp
     )
     plt.close()
 
-    print(f"Model comparison chart saved to {output_dir}/task2_all_models_comparison.png")
+    print(
+        f"Model comparison chart saved to {output_dir}/task2_all_models_comparison.png"
+    )
 
 
 # ============================================================================
@@ -673,9 +674,13 @@ def main():
     print("=" * 70)
 
     # Check if architecture diagram already exists
-    arch_diagram_path = os.path.join(output_dir, "task2_architecture_diagram_resnet.png")
+    arch_diagram_path = os.path.join(
+        output_dir, "task2_architecture_diagram_resnet.png"
+    )
     if not os.path.exists(arch_diagram_path):
-        print("Note: Architecture diagram not found. Run gen_resnet_architecture.py to create it.")
+        print(
+            "Note: Architecture diagram not found. Run gen_resnet_architecture.py to create it."
+        )
         print("Skipping architecture diagram generation...")
     else:
         print(f"✓ Architecture diagram already exists: {arch_diagram_path}")
@@ -694,8 +699,12 @@ def main():
     print(f"  - Top-1 Accuracy: {top1_acc * 100:.2f}%")
     print(f"  - Top-3 Accuracy: {top3_acc * 100:.2f}%")
     print("\nComparison:")
-    print(f"  - vs SVM: Top-1 {(top1_acc - task1_results['top1']) * 100:+.2f}%, Top-3 {(top3_acc - task1_results['top3']) * 100:+.2f}%")
-    print(f"  - vs PANNs: Top-1 {(top1_acc - task2_panns['top1']) * 100:+.2f}%, Top-3 {(top3_acc - task2_panns['top3']) * 100:+.2f}%")
+    print(
+        f"  - vs SVM: Top-1 {(top1_acc - task1_results['top1']) * 100:+.2f}%, Top-3 {(top3_acc - task1_results['top3']) * 100:+.2f}%"
+    )
+    print(
+        f"  - vs PANNs: Top-1 {(top1_acc - task2_panns['top1']) * 100:+.2f}%, Top-3 {(top3_acc - task2_panns['top3']) * 100:+.2f}%"
+    )
     print("=" * 70)
 
 
