@@ -165,8 +165,8 @@ def main():
     # Configuration - must match training
     DURATION = 150
     BATCH_SIZE = 32
-    CHECKPOINT_PATH = "results/task2/best_resnet_model_150s.pth"
-    LABEL_ENCODER_PATH = "results/task2/label_encoder_resnet_150s.pkl"
+    CHECKPOINT_PATH = "assets/best_resnet_model_150s.pth"
+    LABEL_ENCODER_PATH = "assets/label_encoder_resnet_150s.pkl"
     OUTPUT_JSON = "r14921046.json"
 
     print("\nConfiguration:")
