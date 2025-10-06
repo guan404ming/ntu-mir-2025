@@ -119,25 +119,29 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-## Deep Learning Architecture
+## Approach Overview
+
+**Two Deep Learning Models:**
 
 <div class="grid grid-cols-2 gap-4">
 <div>
 
-### PANNs-based Model
+### 1. PANNs (Transfer Learning)
 
-- **Pretrained Features:** PANNs (Pretrained Audio Neural Networks) for feature extraction
-- **Feature Dimension:** 2048-dimensional embeddings from pretrained model
-- **Architecture:** Multi-layer classifier with batch normalization and dropout
+- Pretrained Audio Neural Networks
+- 2048-dim embeddings
+- Frozen feature extractor
+- Fine-tuned classifier head
 
 </div>
 <div>
 
-### Model Components
+### 2. ResNet CNN (From Scratch)
 
-- **Feature Extractor:** PANNs pretrained model (frozen)
-- **Classifier Head:** 4-layer neural network (2048→1024→512→256→20)
-- **Regularization:** Dropout layers (0.3, 0.4, 0.3, 0.2) and BatchNorm1d
+- End-to-end learning
+- Mel spectrogram input
+- Residual blocks
+- No pretrained weights
 
 </div>
 </div>
@@ -145,89 +149,246 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ---
 
 ![](assets/task2_architecture_diagram.png)
+
 ---
 
-## Training Configuration
+## Model 1: Configuration
 
 <div class="grid grid-cols-2 gap-4">
 <div>
 
-### Model Settings
+### Architecture
 
-- **Audio Duration:** 150 seconds
-- **Sample Rate:** 16kHz
-- **Batch Size:** 8 samples
-- **Epochs:** 100 maximum
+- **Feature Extractor:** Pretrained PANNs (frozen)
+- **Embedding:** 2048-dim
+- **Classifier:** 4-layer MLP
+  - 2048→1024→512→256→20
 
 </div>
 <div>
 
-### Training Strategy
+### Training
 
-- **Data Augmentation:** Random cropping, noise addition, time stretch
-- **Optimizer:** Adam with weight decay (1e-4)
-- **Learning Rate:** 0.005 with ReduceLROnPlateau scheduler
-- **Early Stopping:** Based on test set performance
+- **Input:** 150s @ 16kHz
+- **Batch:** 8, **Epochs:** 100
+- **Augmentation:** Crop, noise, stretch
+- **Optimizer:** Adam (lr=0.005)
+- **Scheduler:** ReduceLROnPlateau
 
 </div>
 </div>
 
 ---
 
-## Training Progress
-
-- **Training Loss**: Steady decrease over 100 epochs
-- **Validation Accuracy**: Converged to 60.17%
-- **Learning Curve**: Shows proper convergence without overfitting
-
-![bg right:50%](assets/task2_training_progress.png)
-
----
-
-## Results
+## Model 1: Results
 
 <div class="grid grid-cols-2 gap-4">
 <div>
 
-| Metric | Performance |
-|--------|-------------|
-| Val Top-1 Accuracy | 60.17% |
-| Val Top-3 Accuracy | 83.12% |
+### Performance
 
-- **Top-1:** +3.03% over SVM
-- **Top-3:** +4.33% over SVM
+| Metric | Score |
+|--------|-------|
+| **Top-1** | **60.17%** |
+| **Top-3** | **83.12%** |
+| vs SVM | +3.03% / +4.33% |
 
 </div>
 <div>
 
-![](assets/task2_model_comparison.png)
+### Training Curve
+
+![h:300](assets/task2_training_progress.png)
 
 </div>
 </div>
 
 ---
 
-## Confusion Matrix - Deep Learning
+## Model 1: Confusion Matrix
 
-![bg right:50%](assets/task2_confusion_matrix_panns.png)
+![bg right:60%](assets/task2_confusion_matrix_panns.png)
 
-### Observations
-
-- Similar performance to SVM in top-1 accuracy
-- **Superior top-3 accuracy** (83.12% vs 78.79%)
-- Strong performance on popular artists (Beatles, Fleetwood Mac)
-- Better generalization with pretrained features
+- Strong diagonal pattern
+- Superior top-3 accuracy
+- Pretrained features effective
 
 ---
 
-## Key Findings - Task 2
+![](assets/task2_architecture_diagram_resnet.png)
 
-- **PANNs pretrained features** provide rich 2048-dimensional embeddings
-- **Performance Improvements** over traditional ML:
-  - Top-1 accuracy: +3.03% (57.14% → 60.17%)
-  - Top-3 accuracy: +4.33% (78.79% → 83.12%)
-- **Longer audio duration (150s)** captures more musical context
-- **Deep learning** excels at learning complex audio-artist mappings
+---
+
+## Model 2: Configuration
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+
+### Architecture
+
+- **Input:** Mel spectrogram (64 mels)
+- **Layers:** 7×7 conv → ResBlocks (64, 128, 256)
+- **Pooling:** Dual (Avg+Max) → 512-dim
+- **Classifier:** 512→256→20
+- **Params:** ~2.7M
+
+</div>
+<div>
+
+### Training
+
+- **Input:** 150s @ 16kHz
+- **Batch:** 32, **Epochs:** 100
+- **Augmentation:** Crop, noise, **mixup**
+- **Optimizer:** AdamW (lr=0.01)
+- **Scheduler:** CosineAnnealing
+- **Label Smoothing:** 0.1
+
+</div>
+</div>
+
+---
+
+## Model 2: Results
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+
+### Performance 🏆
+
+| Metric | Score |
+|--------|-------|
+| **Top-1** | **72.73%** |
+| **Top-3** | **89.18%** |
+| vs SVM | +15.59% / +10.39% |
+| vs PANNs | +12.56% / +6.06% |
+
+</div>
+<div>
+
+### Key Highlights
+
+- ✅ **Best overall performance**
+- ✅ No pretrained weights
+- ✅ Compact (2.7M params)
+- ✅ End-to-end learning
+
+</div>
+</div>
+
+---
+
+## Model 2: Confusion Matrix
+
+![bg right:60%](assets/task2_confusion_matrix_resnet.png)
+
+- **Best performance** achieved
+- End-to-end learning effective
+- No pretrained dependency needed
+
+---
+
+![](assets/task2_training_comparison.png)
+
+---
+
+## Training Observations
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+
+### Convergence
+
+- Both converge smoothly
+- No overfitting observed
+- Stable training dynamics
+
+</div>
+<div>
+
+### Final Performance
+
+- ResNet: **72.73%** top-1
+- PANNs: 60.17% top-1
+- **+12.56% improvement**
+
+</div>
+</div>
+
+---
+
+![](assets/task2_all_models_comparison.png)
+
+---
+
+## Model Comparison Table
+
+| Model | Type | Top-1 | Top-3 | Advantage |
+|-------|------|-------|-------|-----------|
+| SVM | Traditional ML | 57.14% | 78.79% | Fast, interpretable |
+| PANNs | Transfer Learning | 60.17% | 83.12% | Pretrained |
+| **ResNet** | **End-to-end DL** | **72.73%** | **89.18%** | **Best** |
+
+---
+
+## Improvements Summary
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+
+### vs SVM (Baseline)
+
+- PANNs: +3.03% / +4.33%
+- **ResNet: +15.59% / +10.39%**
+
+</div>
+<div>
+
+### ResNet vs PANNs
+
+- Top-1: **+12.56%**
+- Top-3: **+6.06%**
+- Params: 2.7M vs 81M+ 🎯
+
+</div>
+</div>
+
+---
+
+## Key Insights
+
+<div class="grid grid-cols-3 gap-4">
+<div>
+
+### Transfer Learning
+
+- Pretrained features
+- 2048-dim embeddings
+- Less training needed
+- Good baseline
+
+</div>
+<div>
+
+### End-to-End
+
+- **Best: 72.73% / 89.18%**
+- Mixup + label smoothing
+- Compact model
+- No pretrained needed
+
+</div>
+<div>
+
+### Success Factors
+
+- 150s audio
+- Deep learning >> ML
+- Augmentation crucial
+- Regularization key
+
+</div>
+</div>
 
 ---
 
@@ -261,9 +422,17 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ### Task 2: Deep Learning
 
+**PANNs Model (Pretrained):**
+
 - `task2_train.py` -> PANNs-based classifier with 150s audio
 - `task2_inference.py` -> Generate predictions for test set
-- `task2_gen_report.py` -> Generates confusion matrix and needed charts
+- `task2_gen_report.py` -> Generates confusion matrix and charts
+
+**ResNet CNN (No Pretrain):**
+
+- `task2_train_wo_pretrain.py` -> ResNet CNN from scratch
+- `task2_inference_wo_pretrain.py` -> Generate predictions
+- `task2_gen_report_wo_pretrain.py` -> Generates visualizations
 
 </div>
 </div>
@@ -273,6 +442,8 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ## References
 
 - **PANNs**: Kong, Q., et al. (2020). PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition. *IEEE/ACM Transactions on Audio, Speech, and Language Processing*.
+- **ResNet**: He, K., et al. (2016). Deep Residual Learning for Image Recognition. *CVPR*.
+- **Mixup**: Zhang, H., et al. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
 - **Librosa**: McFee, B., et al. (2015). librosa: Audio and Music Signal Analysis in Python. *Proceedings of the 14th Python in Science Conference*.
 - **MFCCs**: Logan, B. (2000). Mel Frequency Cepstral Coefficients for Music Modeling. *International Symposium on Music Information Retrieval*.
 - **Spectral Features**: Peeters, G. (2004). A Large Set of Audio Features for Sound Description. *CUIDADO Project*.
