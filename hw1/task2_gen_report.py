@@ -277,67 +277,6 @@ def generate_confusion_matrix(model, label_encoder, device, val_json_path, outpu
 # ============================================================================
 
 
-def create_training_progress_chart(output_dir):
-    """Create a training progress chart based on model progression"""
-
-    print("Generating training progress chart...")
-
-    epochs = list(range(1, 101))
-
-    np.random.seed(42)
-    train_loss = 3.0 * np.exp(-np.array(epochs) / 30) + 0.1 * np.random.randn(100) + 0.5
-    train_loss = np.maximum(train_loss, 0.1)
-
-    val_epochs = list(range(1, 101, 5))
-    val_accuracy = (
-        0.3
-        + 0.32 * (1 - np.exp(-np.array(val_epochs) / 25))
-        + 0.015 * np.random.randn(len(val_epochs))
-    )
-    val_accuracy = np.clip(val_accuracy, 0, 0.65)
-
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
-
-    ax1.plot(epochs, train_loss, "b-", linewidth=2, alpha=0.8, label="Training Loss")
-    ax1.set_xlabel("Epoch")
-    ax1.set_ylabel("Loss")
-    ax1.set_title("Training Loss Progress")
-    ax1.grid(True, alpha=0.3)
-    ax1.legend()
-    ax1.set_xlim(0, 100)
-
-    ax2.plot(
-        val_epochs,
-        val_accuracy,
-        "go-",
-        linewidth=2,
-        markersize=6,
-        label="Validation Accuracy",
-    )
-    ax2.axhline(
-        y=0.6017,
-        color="r",
-        linestyle="--",
-        alpha=0.7,
-        label="Final Val Accuracy (60.17%)",
-    )
-    ax2.set_xlabel("Epoch")
-    ax2.set_ylabel("Validation Accuracy")
-    ax2.set_title("Validation Accuracy Progress During Training")
-    ax2.grid(True, alpha=0.3)
-    ax2.legend()
-    ax2.set_xlim(0, 100)
-    ax2.set_ylim(0.25, 0.70)
-
-    plt.tight_layout()
-    plt.savefig(
-        os.path.join(output_dir, "task2_training_progress.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
-    plt.close()
-
-    print(f"Training progress chart saved to {output_dir}/task2_training_progress.png")
 
 
 def create_model_comparison_chart(task1_results, task2_results, output_dir):
@@ -579,7 +518,6 @@ def main():
     print("\n" + "=" * 60)
     print("Step 5: Generating Charts")
     print("=" * 60)
-    create_training_progress_chart(output_dir)
     create_model_comparison_chart(task1_results, task2_results, output_dir)
     create_architecture_diagram(output_dir)
 
@@ -589,7 +527,6 @@ def main():
     print("=" * 60)
     print(f"\nGenerated files in {output_dir}/:")
     print("  - task2_confusion_matrix_panns.png")
-    print("  - task2_training_progress.png")
     print("  - task2_model_comparison.png")
     print("  - task2_architecture_diagram.png")
     print("\nValidation Results:")

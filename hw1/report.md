@@ -121,8 +121,6 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ## Approach Overview
 
-**Two Deep Learning Models:**
-
 <div class="grid grid-cols-2 gap-4">
 <div>
 
@@ -148,11 +146,7 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-![](assets/task2_architecture_diagram.png)
-
----
-
-## Model 1: Configuration
+## Model 1 (PANNs): Configuration
 
 <div class="grid grid-cols-2 gap-4">
 <div>
@@ -180,10 +174,11 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ---
 
-## Model 1: Results
+![](assets/task2_architecture_diagram.png)
 
-<div class="grid grid-cols-2 gap-4">
-<div>
+---
+
+## Model 1: Results
 
 ### Performance
 
@@ -192,16 +187,6 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 | **Top-1** | **60.17%** |
 | **Top-3** | **83.12%** |
 | vs SVM | +3.03% / +4.33% |
-
-</div>
-<div>
-
-### Training Curve
-
-![h:300](assets/task2_training_progress.png)
-
-</div>
-</div>
 
 ---
 
@@ -285,35 +270,6 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 - **Best performance** achieved
 - End-to-end learning effective
 - No pretrained dependency needed
-
----
-
-![](assets/task2_training_comparison.png)
-
----
-
-## Training Observations
-
-<div class="grid grid-cols-2 gap-4">
-<div>
-
-### Convergence
-
-- Both converge smoothly
-- No overfitting observed
-- Stable training dynamics
-
-</div>
-<div>
-
-### Final Performance
-
-- ResNet: **72.73%** top-1
-- PANNs: 60.17% top-1
-- **+12.56% improvement**
-
-</div>
-</div>
 
 ---
 
