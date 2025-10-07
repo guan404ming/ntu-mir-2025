@@ -273,8 +273,6 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 
 ## Key Insights
 
-**Deep Learning vs Traditional ML - The Performance Gap:**
-
 - **Feature learning advantage**: Deep learning automatically discovers hierarchical audio patterns (spectral, temporal, timbral) while SVM relies on hand-crafted MFCC features
 - **Representation power**: ResNet's 2.7M parameters capture complex artist signatures vs. SVM's linear decision boundaries with limited expressiveness
 - **Data utilization**: Neural networks excel at extracting patterns from raw audio across 150s duration, while traditional ML struggles with high-dimensional feature spaces
@@ -304,8 +302,8 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ### Task 1: Traditional ML
 
 - `task1_preprocessing.py` -> Extract features and preprocess data
-- `task1_train.py` -> Train models and save results
-- `task1_gen_report.py` -> Generate confusion matrix and comparison charts
+- `task1_train.py` -> Traditional ML models
+- `task1_gen_report.py` -> Generates visualizations
 
 </div>
 <div>
@@ -313,8 +311,8 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 ### Task 2: PANNs Model
 
 - `task2_train.py` -> PANNs-based classifier with 150s audio
-- `task2_inference.py` -> Generate predictions for test set
-- `task2_gen_report.py` -> Generates confusion matrix and charts
+- `task2_inference.py` -> Generate predictions
+- `task2_gen_report.py` -> Generates visualizations
 
 </div>
 <div>
@@ -337,7 +335,6 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 - **Mixup**: Zhang, H., et al. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
 - **Librosa**: McFee, B., et al. (2015). librosa: Audio and Music Signal Analysis in Python. *Proceedings of the 14th Python in Science Conference*.
 - **MFCCs**: Logan, B. (2000). Mel Frequency Cepstral Coefficients for Music Modeling. *International Symposium on Music Information Retrieval*.
-- **Spectral Features**: Peeters, G. (2004). A Large Set of Audio Features for Sound Description. *CUIDADO Project*.
 
 ---
 
