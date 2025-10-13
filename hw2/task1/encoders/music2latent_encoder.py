@@ -61,33 +61,18 @@ class Music2LatentEncoder(BaseAudioEncoder):
         if len(wv) > max_samples:
             wv = wv[:max_samples]
 
-        # Move model to CPU temporarily to avoid CUDA issues
-        original_device = self.device
-        if self.device == "cuda":
-            # Force CPU mode for encoding to avoid segfaults
-            self.model.device = "cpu"
-            if hasattr(self.model, "consistency_model"):
-                self.model.consistency_model = self.model.consistency_model.cpu()
-            if hasattr(self.model, "encoder"):
-                self.model.encoder = self.model.encoder.cpu()
+        # Encode to latent representation
+        # Returns shape: (1, 64, sequence_length)
+        with torch.no_grad():
+            latent = self.model.encode(wv)
 
-        try:
-            # Encode to latent representation
-            # Returns shape: (1, 64, sequence_length)
-            with torch.no_grad():
-                latent = self.model.encode(wv)
+        # Convert to numpy if tensor
+        if isinstance(latent, torch.Tensor):
+            latent = latent.cpu().numpy()
 
-            # Convert to numpy if tensor
-            if isinstance(latent, torch.Tensor):
-                latent = latent.cpu().numpy()
+        # Pool over time dimension to get fixed-size embedding
+        # Shape: (1, 64, seq_len) -> (64,)
+        # Using mean pooling to get a single embedding vector
+        embedding = latent.mean(axis=-1).squeeze()
 
-            # Pool over time dimension to get fixed-size embedding
-            # Shape: (1, 64, seq_len) -> (64,)
-            # Using mean pooling to get a single embedding vector
-            embedding = latent.mean(axis=-1).squeeze()
-
-            return embedding
-        finally:
-            # Restore original device setting
-            if original_device == "cuda":
-                self.model.device = original_device
+        return embedding

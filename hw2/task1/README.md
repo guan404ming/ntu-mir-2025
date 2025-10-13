@@ -144,8 +144,7 @@ Four quality dimensions from Meta's Audiobox Aesthetics model:
 - Consistency Autoencoder for latent audio compression
 - Developed by Sony CSL Paris
 - Encodes 44.1 kHz audio into 64-channel latent representations
-- **Status**: ⚠️ CUDA compatibility issues (use CPU mode with `--device cpu`)
-- **Note**: Works on CPU but experiences segmentation faults on CUDA
+- **Status**: ✅ Working on both CPU and CUDA
 
 ### MuQ (Music Quantization)
 - Self-supervised music representation learning with Mel Residual Vector Quantization
