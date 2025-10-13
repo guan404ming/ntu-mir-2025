@@ -51,7 +51,7 @@ def main():
         "--encoder",
         type=str,
         default="clap",
-        choices=["clap", "music2latent"],
+        choices=["clap", "music2latent", "muq"],
         help="Audio encoder to use for retrieval",
     )
     parser.add_argument(
@@ -112,6 +112,10 @@ def main():
         from task1.encoders.music2latent_encoder import Music2LatentEncoder
 
         encoder = Music2LatentEncoder(device=args.device)
+    elif args.encoder == "muq":
+        from task1.encoders.muq_encoder import MuQEncoder
+
+        encoder = MuQEncoder(device=args.device)
     else:
         raise ValueError(f"Unknown encoder: {args.encoder}")
 

@@ -60,7 +60,7 @@ python main.py \
 
 ### Arguments
 
-- `--encoder`: Audio encoder to use (`clap`, `music2latent`)
+- `--encoder`: Audio encoder to use (`clap`, `music2latent`, `muq`)
 - `--reference-dir`: Directory with reference music files
 - `--target-dir`: Directory with target music files
 - `--top-k`: Number of similar tracks to retrieve (default: 5)
@@ -144,8 +144,15 @@ Four quality dimensions:
 - Consistency Autoencoder for latent audio compression
 - Developed by Sony CSL Paris
 - Encodes 44.1 kHz audio into 64-channel latent representations
-- **Status**: ⚠️ Currently experiencing segmentation faults on CUDA
-- **Note**: Implementation completed but requires further debugging for GPU compatibility
+- **Status**: ⚠️ CUDA compatibility issues (use CPU mode with `--device cpu`)
+- **Note**: Works on CPU but experiences segmentation faults on CUDA
+
+### MuQ (Music Quantization)
+- Self-supervised music representation learning with Mel Residual Vector Quantization
+- Developed by Tencent AI Lab
+- 310M parameters, trained on large-scale music data
+- Encodes 24 kHz audio using Conformer architecture
+- **Status**: ✅ Working on both CPU and CUDA
 
 ## Caching
 

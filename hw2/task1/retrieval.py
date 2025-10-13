@@ -1,6 +1,5 @@
 """Music retrieval system using audio embeddings and cosine similarity."""
 
-import os
 import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Dict
@@ -69,7 +68,7 @@ class MusicRetrieval:
         self.reference_embeddings = []
 
         for i, audio_file in enumerate(self.reference_files):
-            print(f"Encoding {i+1}/{len(self.reference_files)}: {audio_file.name}")
+            print(f"Encoding {i + 1}/{len(self.reference_files)}: {audio_file.name}")
             embedding = self.encoder.encode_audio(str(audio_file))
             self.reference_embeddings.append(embedding)
 
@@ -135,20 +134,16 @@ class MusicRetrieval:
         # Get all target files
         audio_extensions = {".mp3", ".wav", ".flac", ".m4a", ".ogg"}
         target_files = sorted(
-            [
-                f
-                for f in target_dir.iterdir()
-                if f.suffix.lower() in audio_extensions
-            ]
+            [f for f in target_dir.iterdir() if f.suffix.lower() in audio_extensions]
         )
 
         print(f"\nFound {len(target_files)} target files")
 
         results = {}
         for i, target_file in enumerate(target_files):
-            print(f"\n{'='*60}")
-            print(f"Processing target {i+1}/{len(target_files)}: {target_file.name}")
-            print(f"{'='*60}")
+            print(f"\n{'=' * 60}")
+            print(f"Processing target {i + 1}/{len(target_files)}: {target_file.name}")
+            print(f"{'=' * 60}")
 
             similar_tracks = self.retrieve_similar(str(target_file), top_k=top_k)
 

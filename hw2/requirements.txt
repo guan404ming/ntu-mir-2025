@@ -7,4 +7,5 @@ scipy>=1.16.2
 numpy>=2.3.3
 laion-clap>=1.1.5
 music2latent>=0.1.6
+muq>=0.1.0
 ruff>=0.14.0
