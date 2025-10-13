@@ -179,7 +179,7 @@ class MusicRetrieval:
                 for ref, score in similar_tracks
             ]
 
-        with open(output_path, "w") as f:
-            json.dump(output, f, indent=2)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(output, f, indent=2, ensure_ascii=False)
 
         print(f"\nSaved retrieval results to: {output_path}")
