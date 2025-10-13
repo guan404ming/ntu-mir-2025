@@ -2,10 +2,10 @@
 
 import torch
 import sys
-import numpy as np
+from .base_encoder import BaseAudioEncoder
 
 
-class CLAPEncoder:
+class CLAPEncoder(BaseAudioEncoder):
     """CLAP encoder for extracting audio embeddings."""
 
     def __init__(self, model_name=None, device=None):
@@ -22,10 +22,12 @@ class CLAPEncoder:
 
         # Monkey-patch torch.load to use weights_only=False for CLAP compatibility
         _original_load = torch.load
+
         def _patched_load(*args, **kwargs):
-            if 'weights_only' not in kwargs:
-                kwargs['weights_only'] = False
+            if "weights_only" not in kwargs:
+                kwargs["weights_only"] = False
             return _original_load(*args, **kwargs)
+
         torch.load = _patched_load
 
         try:
@@ -39,8 +41,10 @@ class CLAPEncoder:
 
             # Patch model.load_state_dict to use strict=False
             _original_load_state = self.model.model.load_state_dict
+
             def _patched_load_state(state_dict, strict=True):
                 return _original_load_state(state_dict, strict=False)
+
             self.model.model.load_state_dict = _patched_load_state
 
             # Load checkpoint
@@ -73,12 +77,10 @@ class CLAPEncoder:
             numpy array of shape (embed_dim,) containing audio embedding
         """
         # Get audio embedding
-        audio_embed = self.model.get_audio_embedding_from_filelist(
-            x=[audio_path]
-        )
+        audio_embed = self.model.get_audio_embedding_from_filelist(x=[audio_path])
 
         # Convert to numpy if tensor
-        if hasattr(audio_embed, 'cpu'):
+        if hasattr(audio_embed, "cpu"):
             audio_embed = audio_embed.cpu().numpy()
 
         # Returns shape (1, embed_dim), squeeze to (embed_dim,)
@@ -100,30 +102,9 @@ class CLAPEncoder:
         text_embed = self.model.get_text_embedding(text)
 
         # Convert to numpy if tensor
-        if hasattr(text_embed, 'cpu'):
+        if hasattr(text_embed, "cpu"):
             text_embed = text_embed.cpu().numpy()
 
         if len(text) == 1:
             return text_embed[0]
         return text_embed
-
-    @staticmethod
-    def cosine_similarity(embed1, embed2):
-        """
-        Calculate cosine similarity between two embeddings.
-
-        Args:
-            embed1: First embedding (numpy array)
-            embed2: Second embedding (numpy array)
-
-        Returns:
-            Cosine similarity score (float)
-        """
-        import numpy as np
-
-        # Normalize embeddings
-        embed1_norm = embed1 / np.linalg.norm(embed1)
-        embed2_norm = embed2 / np.linalg.norm(embed2)
-
-        # Compute cosine similarity
-        return np.dot(embed1_norm, embed2_norm)

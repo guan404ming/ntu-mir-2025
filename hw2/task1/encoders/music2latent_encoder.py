@@ -1,11 +1,11 @@
 """Music2latent encoder for audio embedding."""
 
 import torch
-import numpy as np
 import librosa
+from .base_encoder import BaseAudioEncoder
 
 
-class Music2LatentEncoder:
+class Music2LatentEncoder(BaseAudioEncoder):
     """Music2latent encoder for extracting audio embeddings."""
 
     def __init__(self, device=None):
@@ -91,22 +91,3 @@ class Music2LatentEncoder:
             # Restore original device setting
             if original_device == "cuda":
                 self.model.device = original_device
-
-    @staticmethod
-    def cosine_similarity(embed1, embed2):
-        """
-        Calculate cosine similarity between two embeddings.
-
-        Args:
-            embed1: First embedding (numpy array)
-            embed2: Second embedding (numpy array)
-
-        Returns:
-            Cosine similarity score (float)
-        """
-        # Normalize embeddings
-        embed1_norm = embed1 / (np.linalg.norm(embed1) + 1e-8)
-        embed2_norm = embed2 / (np.linalg.norm(embed2) + 1e-8)
-
-        # Compute cosine similarity
-        return float(np.dot(embed1_norm, embed2_norm))

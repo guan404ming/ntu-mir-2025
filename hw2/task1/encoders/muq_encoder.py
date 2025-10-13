@@ -1,11 +1,11 @@
 """MuQ (Music Quantization) encoder for audio embedding."""
 
 import torch
-import numpy as np
 import librosa
+from .base_encoder import BaseAudioEncoder
 
 
-class MuQEncoder:
+class MuQEncoder(BaseAudioEncoder):
     """MuQ encoder for extracting audio embeddings."""
 
     def __init__(self, model_name="OpenMuQ/MuQ-large-msd-iter", device=None):
@@ -19,9 +19,7 @@ class MuQEncoder:
         try:
             from muq import MuQ
         except ImportError:
-            raise ImportError(
-                "muq is not installed. Install with: pip install muq"
-            )
+            raise ImportError("muq is not installed. Install with: pip install muq")
 
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Loading MuQ model on {self.device}...")
@@ -68,22 +66,3 @@ class MuQEncoder:
             embedding = embedding.cpu().numpy()[0]
 
         return embedding
-
-    @staticmethod
-    def cosine_similarity(embed1, embed2):
-        """
-        Calculate cosine similarity between two embeddings.
-
-        Args:
-            embed1: First embedding (numpy array)
-            embed2: Second embedding (numpy array)
-
-        Returns:
-            Cosine similarity score (float)
-        """
-        # Normalize embeddings
-        embed1_norm = embed1 / (np.linalg.norm(embed1) + 1e-8)
-        embed2_norm = embed2 / (np.linalg.norm(embed2) + 1e-8)
-
-        # Compute cosine similarity
-        return float(np.dot(embed1_norm, embed2_norm))
