@@ -54,8 +54,7 @@ python main.py \
     --target-dir ../data/target_music_list_60s \
     --top-k 5 \
     --output-dir results \
-    --device cuda \
-    --use-dummy-aesthetics
+    --device cuda
 ```
 
 ### Arguments
@@ -67,7 +66,6 @@ python main.py \
 - `--output-dir`: Directory to save results (default: `results`)
 - `--cache-dir`: Directory for caching embeddings (default: `cache`)
 - `--device`: Device to use (`cuda` or `cpu`, default: `cuda`)
-- `--use-dummy-aesthetics`: Use dummy aesthetics metric if audiobox unavailable
 - `--target-duration`: Trim target audio to this duration for melody accuracy (seconds)
 
 ## Output
@@ -125,11 +123,13 @@ Detailed metrics for each target track:
 - Based on `data/Melody_acc.py`
 
 ### 3. Audiobox Aesthetics
-Four quality dimensions:
+Four quality dimensions from Meta's Audiobox Aesthetics model:
 - **CE (Content Enjoyment)**: How enjoyable the content is
 - **CU (Content Usefulness)**: How useful/appropriate the content is
 - **PC (Production Complexity)**: Complexity of the production
 - **PQ (Production Quality)**: Technical quality of the production
+- Model: `facebook/audiobox-aesthetics`
+- Source: https://github.com/facebookresearch/audiobox-aesthetics
 
 ## Encoders
 
@@ -164,7 +164,7 @@ The system caches audio embeddings to speed up repeated runs:
 ## Notes
 
 1. **Reference directory typo**: The original dataset has a typo `referecne_music_list_60s` (note the misspelling)
-2. **Dummy aesthetics**: If Meta Audiobox is not installed, use `--use-dummy-aesthetics` flag for testing
+2. **Audiobox Aesthetics**: The real Meta Audiobox Aesthetics model is now used for quality evaluation
 3. **GPU usage**: CUDA is used by default if available
 4. **Melody trimming**: Use `--target-duration` to trim target audio if generated audio is shorter (e.g., 47 seconds for MuseControlLite)
 

@@ -13,7 +13,7 @@ from task1.encoders.clap_encoder import CLAPEncoder
 from task1.retrieval import MusicRetrieval
 from task1.metrics.clap_metric import CLAPMetric
 from task1.metrics.melody_metric import MelodyMetric
-from task1.metrics.aesthetics_metric import get_aesthetics_metric
+from task1.metrics.aesthetics_metric import AestheticsMetric
 
 
 def convert_to_serializable(obj):
@@ -74,11 +74,6 @@ def main():
         type=str,
         default="cuda",
         help="Device to use (cuda/cpu)",
-    )
-    parser.add_argument(
-        "--use-dummy-aesthetics",
-        action="store_true",
-        help="Use dummy aesthetics metric (if audiobox not available)",
     )
     parser.add_argument(
         "--target-duration",
@@ -144,10 +139,7 @@ def main():
         encoder if args.encoder == "clap" else CLAPEncoder(device=args.device)
     )
     melody_metric = MelodyMetric()
-    aesthetics_metric = get_aesthetics_metric(
-        device=args.device,
-        use_dummy=args.use_dummy_aesthetics,
-    )
+    aesthetics_metric = AestheticsMetric(device=args.device)
 
     # Evaluate each target with its top retrieved track
     print("\n[5/5] Evaluating retrieved music...")
