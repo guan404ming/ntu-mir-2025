@@ -206,8 +206,8 @@ def main():
     evaluation_output = output_dir / f"evaluation_results_{args.encoder}.json"
     # Convert numpy types to native Python types
     evaluation_results = convert_to_serializable(evaluation_results)
-    with open(evaluation_output, "w") as f:
-        json.dump(evaluation_results, f, indent=2)
+    with open(evaluation_output, "w", encoding="utf-8") as f:
+        json.dump(evaluation_results, f, indent=2, ensure_ascii=False)
 
     print(f"\n{'=' * 80}")
     print("✓ Task 1 completed successfully!")

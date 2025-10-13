@@ -27,10 +27,12 @@ class Music2LatentEncoder:
 
         # Monkey-patch torch.load to use weights_only=False for compatibility
         _original_load = torch.load
+
         def _patched_load(*args, **kwargs):
-            if 'weights_only' not in kwargs:
-                kwargs['weights_only'] = False
+            if "weights_only" not in kwargs:
+                kwargs["weights_only"] = False
             return _original_load(*args, **kwargs)
+
         torch.load = _patched_load
 
         try:
@@ -52,22 +54,43 @@ class Music2LatentEncoder:
             numpy array containing latent audio embedding
         """
         # Load audio at 44.1kHz (music2latent's expected sample rate)
-        wv, sr = librosa.load(audio_path, sr=44100, mono=True)
+        wv, _ = librosa.load(audio_path, sr=44100, mono=True)
 
-        # Encode to latent representation
-        # Returns shape: (1, 64, sequence_length)
-        latent = self.model.encode(wv)
+        # Ensure audio is not too long (limit to 60 seconds to avoid memory issues)
+        max_samples = 44100 * 60  # 60 seconds
+        if len(wv) > max_samples:
+            wv = wv[:max_samples]
 
-        # Convert to numpy if tensor
-        if isinstance(latent, torch.Tensor):
-            latent = latent.cpu().numpy()
+        # Move model to CPU temporarily to avoid CUDA issues
+        original_device = self.device
+        if self.device == "cuda":
+            # Force CPU mode for encoding to avoid segfaults
+            self.model.device = "cpu"
+            if hasattr(self.model, "consistency_model"):
+                self.model.consistency_model = self.model.consistency_model.cpu()
+            if hasattr(self.model, "encoder"):
+                self.model.encoder = self.model.encoder.cpu()
 
-        # Pool over time dimension to get fixed-size embedding
-        # Shape: (1, 64, seq_len) -> (64,)
-        # Using mean pooling to get a single embedding vector
-        embedding = latent.mean(axis=-1).squeeze()
+        try:
+            # Encode to latent representation
+            # Returns shape: (1, 64, sequence_length)
+            with torch.no_grad():
+                latent = self.model.encode(wv)
 
-        return embedding
+            # Convert to numpy if tensor
+            if isinstance(latent, torch.Tensor):
+                latent = latent.cpu().numpy()
+
+            # Pool over time dimension to get fixed-size embedding
+            # Shape: (1, 64, seq_len) -> (64,)
+            # Using mean pooling to get a single embedding vector
+            embedding = latent.mean(axis=-1).squeeze()
+
+            return embedding
+        finally:
+            # Restore original device setting
+            if original_device == "cuda":
+                self.model.device = original_device
 
     @staticmethod
     def cosine_similarity(embed1, embed2):
