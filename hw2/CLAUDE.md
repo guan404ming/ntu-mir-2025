@@ -2,7 +2,7 @@
 
 ## Task 1 - Retrieval
 
-We provide reference_music_list, retrieve the most similar ones for each music in `data/target_music_list_60s/`.
+We provide `data/referecne_music_list_60s`, retrieve the most similar ones for each music in `data/target_music_list_60s/`.
 
 Suggestions for Audio Encoder Options include but not limited to:
 1. Stable-Audio-Open VAE encode
@@ -10,7 +10,7 @@ Suggestions for Audio Encoder Options include but not limited to:
 3. CLAP
 4. MuQ
 
-For each song in the target_music_list, you will have to report:
+For each song in `data/target_music_list_60s/`, you will have to report:
 1. CLAP,
    a. calculate cosine similarity between:
       i. Generated music and target music
