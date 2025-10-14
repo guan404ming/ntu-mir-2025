@@ -83,49 +83,61 @@ Retrieve the most similar reference music tracks for each target song using diff
 
 ## Per-Track Retrieval Results - CLAP
 
-| Target Track | Top Retrieved | Similarity | CLAP Eval | Melody |
-|--------------|---------------|------------|-----------|--------|
-| Country 114 BPM | latin-reggaeton_90 | 0.927 | 0.815 | 0.085 |
-| Jazz 120 BPM | jazz-mediumfast_180 | 0.931 | 0.920 | 0.040 |
-| Rock 102 BPM | funk_80 | 0.958 | 0.940 | 0.099 |
-| Hedwig (Dizi) | 黃土情 | 0.797 | 0.770 | 0.174 |
-| Mussorgsky | MIDI XP_21 | 0.819 | 0.829 | 0.170 |
-| Spirited Away | MIDI XP_21 | 0.776 | 0.762 | 0.114 |
-| IRIS OUT | MIDI XP_22 | 0.769 | 0.685 | 0.091 |
-| 菊花台 | 黃土情 | 0.783 | 0.663 | 0.131 |
-| 莫文蔚 | MIDI XP_21 | 0.710 | 0.534 | 0.097 |
+<style scoped>
+table { font-size: 0.75em; }
+</style>
+
+| Target Track | Top Retrieved | Cosine Similarity | CLAP | Melody Acc. | CE | CU | PC | PQ |
+|--------------|---------------|------------|------|--------|----|----|----|----|
+| Country 114 BPM | latin-reggaeton_90 | 0.927 | 0.815 | 0.085 | 6.5 | 8.0 | 3.0 | 7.7 |
+| Jazz 120 BPM | jazz-mediumfast_180 | 0.931 | 0.920 | 0.040 | 6.3 | 7.8 | 3.6 | 7.6 |
+| Rock 102 BPM | funk_80 | 0.958 | 0.940 | 0.099 | 6.8 | 8.0 | 3.2 | 7.8 |
+| Hedwig (Dizi) | 黃土情 | 0.797 | 0.770 | 0.174 | 6.1 | 7.2 | 3.4 | 7.3 |
+| Mussorgsky | MIDI XP_21 | 0.819 | 0.829 | 0.170 | 7.3 | 7.8 | 2.8 | 7.6 |
+| Spirited Away | MIDI XP_21 | 0.776 | 0.762 | 0.114 | 7.3 | 7.8 | 2.8 | 7.6 |
+| IRIS OUT | MIDI XP_22 | 0.769 | 0.685 | 0.091 | 7.3 | 7.7 | 3.1 | 7.5 |
+| 菊花台 | 黃土情 | 0.783 | 0.663 | 0.131 | 6.1 | 7.2 | 3.4 | 7.3 |
+| 莫文蔚 | MIDI XP_21 | 0.710 | 0.534 | 0.097 | 7.3 | 7.8 | 2.8 | 7.6 |
 
 ---
 
 ## Per-Track Retrieval Results - Music2Latent
 
-| Target Track | Top Retrieved | Similarity | CLAP Eval | Melody |
-|--------------|---------------|------------|-----------|--------|
-| Country 114 BPM | jazz-funk_116 | 0.927 | 0.668 | 0.164 |
-| Jazz 120 BPM | reggae_78 | 0.947 | 0.635 | 0.121 |
-| Rock 102 BPM | funk_80 | 0.968 | 0.937 | 0.108 |
-| Hedwig (Dizi) | 鄉歌 | 0.822 | 0.684 | 0.143 |
-| Mussorgsky | MIDI XP_21 | 0.956 | 0.835 | 0.170 |
-| Spirited Away | MIDI SMF_02 | 0.925 | 0.611 | 0.171 |
-| IRIS OUT | MIDI SMF_05 | 0.820 | 0.536 | 0.172 |
-| 菊花台 | MIDI SMF_02 | 0.822 | 0.514 | 0.125 |
-| 莫文蔚 | MIDI SMF_05 | 0.760 | 0.328 | 0.106 |
+<style scoped>
+table { font-size: 0.75em; }
+</style>
+
+| Target Track | Top Retrieved | Cosine Similarity | CLAP | Melody Acc. | CE | CU | PC | PQ |
+|--------------|---------------|------------|------|--------|----|----|----|----|
+| Country 114 BPM | jazz-funk_116 | 0.927 | 0.668 | 0.164 | 5.4 | 7.5 | 2.5 | 7.8 |
+| Jazz 120 BPM | reggae_78 | 0.947 | 0.635 | 0.121 | 4.1 | 7.1 | 1.9 | 7.6 |
+| Rock 102 BPM | funk_80 | 0.968 | 0.937 | 0.108 | 7.1 | 8.1 | 3.2 | 7.9 |
+| Hedwig (Dizi) | 鄉歌 | 0.822 | 0.684 | 0.143 | 7.3 | 6.8 | 4.0 | 7.0 |
+| Mussorgsky | MIDI XP_21 | 0.956 | 0.835 | 0.170 | 7.3 | 7.8 | 2.8 | 7.6 |
+| Spirited Away | MIDI SMF_02 | 0.925 | 0.611 | 0.171 | 7.4 | 7.8 | 3.5 | 7.5 |
+| IRIS OUT | MIDI SMF_05 | 0.820 | 0.536 | 0.172 | 7.3 | 7.6 | 3.4 | 7.4 |
+| 菊花台 | MIDI SMF_02 | 0.822 | 0.514 | 0.125 | 7.4 | 7.6 | 3.3 | 7.4 |
+| 莫文蔚 | MIDI SMF_05 | 0.760 | 0.328 | 0.106 | 6.2 | 7.1 | 3.6 | 7.0 |
 
 ---
 
 ## Per-Track Retrieval Results - MuQ
 
-| Target Track | Top Retrieved | Similarity | CLAP Eval | Melody |
-|--------------|---------------|------------|-----------|--------|
-| Country 114 BPM | afrocuban_105 | 0.770 | 0.732 | 0.138 |
-| Jazz 120 BPM | jazz-mediumfast_180 | 0.831 | 0.836 | 0.056 |
-| Rock 102 BPM | funk-purdieshuffle_130 | 0.890 | 0.951 | 0.089 |
-| Hedwig (Dizi) | 安童哥買菜 | 0.787 | 0.732 | 0.174 |
-| Mussorgsky | MIDI XP_21 | 0.965 | 0.790 | 0.157 |
-| Spirited Away | MIDI XP_19 | 0.782 | 0.687 | 0.165 |
-| IRIS OUT | MIDI XP_19 | 0.736 | 0.630 | 0.111 |
-| 菊花台 | MIDI SMF_02 | 0.749 | 0.615 | 0.133 |
-| 莫文蔚 | 漁舟唱晚 | 0.713 | 0.452 | 0.087 |
+<style scoped>
+table { font-size: 0.75em; }
+</style>
+
+| Target Track | Top Retrieved | Cosine Similarity | CLAP | Melody Acc. | CE | CU | PC | PQ |
+|--------------|---------------|------------|------|--------|----|----|----|----|
+| Country 114 BPM | afrocuban_105 | 0.770 | 0.788 | 0.109 | 6.6 | 8.1 | 3.0 | 7.9 |
+| Jazz 120 BPM | jazz-mediumfast_180 | 0.831 | 0.921 | 0.040 | 6.3 | 7.8 | 3.6 | 7.6 |
+| Rock 102 BPM | funk-purdieshuffle_130 | 0.890 | 0.967 | 0.120 | 6.9 | 8.0 | 3.3 | 7.8 |
+| Hedwig (Dizi) | 安童哥買菜 | 0.787 | 0.791 | 0.114 | 7.0 | 7.6 | 4.2 | 7.6 |
+| Mussorgsky | MIDI XP_21 | 0.965 | 0.820 | 0.170 | 7.3 | 7.8 | 2.8 | 7.6 |
+| Spirited Away | MIDI XP_19 | 0.782 | 0.525 | 0.075 | 7.1 | 7.6 | 3.2 | 7.3 |
+| IRIS OUT | MIDI XP_19 | 0.736 | 0.730 | 0.094 | 7.1 | 7.6 | 3.2 | 7.3 |
+| 菊花台 | MIDI SMF_02 | 0.749 | 0.632 | 0.125 | 7.4 | 7.6 | 3.3 | 7.4 |
+| 莫文蔚 | 漁舟唱晚 | 0.713 | 0.753 | 0.156 | 7.1 | 7.8 | 3.6 | 8.0 |
 
 ---
 
@@ -133,32 +145,34 @@ Retrieve the most similar reference music tracks for each target song using diff
 
 ### Retrieval Similarity
 
-- **Music2Latent** achieves highest average retrieval similarity (0.901)
-- **MuQ** shows more conservative similarity scores (0.776)
-- **CLAP** performs well (0.856) with balanced results
+- **Music2Latent** achieves highest average retrieval similarity (0.883)
+- **CLAP** performs well (0.830) with balanced results
+- **MuQ** shows more conservative similarity scores (0.802)
 
-### CLAP Evaluation Metric
+### CLAP Similarity (Target vs Retrieved)
 
-- **CLAP encoder** naturally scores highest on CLAP similarity metric (0.755)
-- **Music2Latent** shows lower CLAP similarity (0.626) despite high retrieval scores
+- **CLAP encoder** naturally scores highest on CLAP similarity metric (0.769)
+- **Music2Latent** shows lower CLAP similarity (0.639) despite high retrieval scores
 - Indicates different embedding spaces capture different audio aspects
+- This metric evaluates how similar the target and retrieved reference are in CLAP space
 
 ---
 
 ## Key Findings - Quality Metrics
 
-### Melody Accuracy
+### Melody Accuracy (Target vs Retrieved)
 
-- **Melody accuracy is generally low** across all encoders (0.12-0.14 range)
+- **Melody accuracy is generally low** across all encoders (0.11-0.14 range)
 - Suggests encoders focus more on **timbre and texture** than melodic content
-- **Music2Latent** slightly better (0.139) at preserving melodic information
+- **Music2Latent** slightly better (0.142) at preserving melodic information
+- Measures how well the retrieved reference music matches the target's melody
 
-### Audiobox Aesthetics
+### Audiobox Aesthetics (Quality of Retrieved Music)
 
-- **Production Quality (PQ)** scores consistently high (7.4-7.6)
-- **Content Usefulness (CU)** also high (7.5-7.7)
-- **Production Complexity (PC)** relatively lower (2.9-3.0)
-- Retrieved tracks maintain high aesthetic quality across encoders
+- **Production Quality (PQ)** scores consistently high (7.5-7.6)
+- **Content Usefulness (CU)** also high (7.5-7.8)
+- **Production Complexity (PC)** relatively lower (3.1-3.3)
+- Retrieved reference tracks maintain high aesthetic quality across all encoders
 
 ---
 
@@ -275,7 +289,7 @@ Retrieve the most similar reference music tracks for each target song using diff
    - Music2Latent: Fine-grained details
    - MuQ: Music-specific patterns
 
-2. **High retrieval quality** achieved across all encoders (0.776-0.901)
+2. **High retrieval quality** achieved across all encoders (0.802-0.883)
 
 3. **Real aesthetics metrics** provide valuable quality insights
 

@@ -1,4 +1,10 @@
-"""Music retrieval system using audio embeddings and cosine similarity."""
+"""Music retrieval system using audio embeddings and cosine similarity.
+
+This module implements Task 1 of the assignment:
+- For each target music, retrieve the most similar reference music
+- Uses audio encoders (CLAP, Music2Latent, MuQ, etc.) to compute embeddings
+- Finds similar tracks using cosine similarity between embeddings
+"""
 
 import numpy as np
 from pathlib import Path

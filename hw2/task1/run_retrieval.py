@@ -1,4 +1,15 @@
-"""Main script for Task 1: Music Retrieval and Evaluation."""
+"""Main script for Task 1: Music Retrieval and Evaluation.
+
+Task 1 Overview (from CLAUDE.md):
+- Goal: Retrieve the most similar reference music for each target music
+- Method: Use audio encoders (CLAP, Music2Latent, MuQ, etc.) to compute embeddings
+          and find similar tracks via cosine similarity
+
+For each target music, we report:
+1. CLAP similarity: Cosine similarity between target and retrieved reference music
+2. Aesthetics metrics: Quality metrics (CE, CU, PC, PQ) of the retrieved reference music
+3. Melody accuracy: Melody similarity between target and retrieved reference music
+"""
 
 import argparse
 import json
@@ -142,6 +153,10 @@ def main():
     aesthetics_metric = AestheticsMetric(device=args.device)
 
     # Evaluate each target with its top retrieved track
+    # According to Task 1 in CLAUDE.md, for each target music we need to report:
+    # 1. CLAP similarity: between retrieved reference music and target music
+    # 2. Aesthetics (CE, CU, PC, PQ): of the retrieved reference music
+    # 3. Melody accuracy: between retrieved reference music and target music
     print("\n[5/5] Evaluating retrieved music...")
     evaluation_results = {}
 
@@ -151,26 +166,26 @@ def main():
         print(f"Evaluating: {target_name}")
         print(f"{'=' * 60}")
 
-        # Get top retrieved track
+        # Get top retrieved reference track
         top_retrieved_path, retrieval_score = similar_tracks[0]
 
-        # 1. CLAP similarity
-        print("  - Calculating CLAP similarity...")
+        # 1. CLAP similarity: Compare target music with retrieved reference music
+        print("  - Calculating CLAP similarity (target vs retrieved)...")
         clap_result = clap_metric.evaluate_retrieval(
             target_path=target_path,
             retrieved_path=top_retrieved_path,
         )
 
-        # 2. Melody accuracy
-        print("  - Calculating melody accuracy...")
+        # 2. Melody accuracy: Compare target music with retrieved reference music
+        print("  - Calculating melody accuracy (target vs retrieved)...")
         melody_result = melody_metric.evaluate(
             target_path=target_path,
             generated_path=top_retrieved_path,
             target_duration=args.target_duration,
         )
 
-        # 3. Aesthetics metrics
-        print("  - Calculating aesthetics metrics...")
+        # 3. Aesthetics metrics: Evaluate the quality of retrieved reference music
+        print("  - Calculating aesthetics metrics (of retrieved music)...")
         aesthetics_result = aesthetics_metric.evaluate_audio(top_retrieved_path)
 
         # Compile results
@@ -188,15 +203,16 @@ def main():
         }
 
         print(f"\nResults for {target_name}:")
-        print(f"  Retrieved: {Path(top_retrieved_path).name}")
-        print(f"  Retrieval similarity: {retrieval_score:.4f}")
-        print(f"  CLAP similarity: {clap_result['clap_similarity']:.4f}")
-        print(f"  Melody accuracy: {melody_result['melody_accuracy']:.4f}")
-        print("  Aesthetics:")
-        print(f"    CE: {aesthetics_result['ce']:.3f}")
-        print(f"    CU: {aesthetics_result['cu']:.3f}")
-        print(f"    PC: {aesthetics_result['pc']:.3f}")
-        print(f"    PQ: {aesthetics_result['pq']:.3f}")
+        print(f"  Retrieved reference track: {Path(top_retrieved_path).name}")
+        print(f"  Retrieval similarity (encoder): {retrieval_score:.4f}")
+        print("\n  Evaluation Metrics:")
+        print(f"    1. CLAP similarity (target vs retrieved): {clap_result['clap_similarity']:.4f}")
+        print(f"    2. Melody accuracy (target vs retrieved): {melody_result['melody_accuracy']:.4f}")
+        print("    3. Aesthetics (of retrieved music):")
+        print(f"       - CE (Content Enjoyment): {aesthetics_result['ce']:.3f}")
+        print(f"       - CU (Content Usefulness): {aesthetics_result['cu']:.3f}")
+        print(f"       - PC (Production Complexity): {aesthetics_result['pc']:.3f}")
+        print(f"       - PQ (Production Quality): {aesthetics_result['pq']:.3f}")
 
     # Save evaluation results
     evaluation_output = output_dir / f"evaluation_results_{args.encoder}.json"

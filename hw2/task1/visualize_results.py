@@ -1,4 +1,22 @@
-"""Visualize retrieval and evaluation results."""
+"""Visualize retrieval and evaluation results for Task 1.
+
+Task 1 Visualization Overview:
+This script creates visualizations comparing different audio encoders (CLAP, Music2Latent, MuQ)
+for music retrieval. For each target music, we retrieved the most similar reference music
+and evaluated it using the following metrics:
+
+1. Retrieval Similarity: Encoder-specific cosine similarity used for retrieval
+2. CLAP Similarity: CLAP-based cosine similarity between target and retrieved reference
+3. Melody Accuracy: Chromagram-based melody matching between target and retrieved reference
+4. Audiobox Aesthetics: Quality metrics (CE, CU, PC, PQ) of the retrieved reference music
+   - CE: Content Enjoyment
+   - CU: Content Usefulness
+   - PC: Production Complexity
+   - PQ: Production Quality
+
+The visualizations help compare how well different encoders retrieve similar music
+and how the retrieved music compares to the target across multiple dimensions.
+"""
 
 import json
 import matplotlib.pyplot as plt
@@ -33,6 +51,8 @@ target_short = [
 ]
 
 # 1. Compare Retrieval Similarity across encoders
+# This shows how similar the retrieved reference music is to the target,
+# according to each encoder's embedding space
 fig, ax = plt.subplots(figsize=(12, 6))
 x = np.arange(len(target_names))
 width = 0.25
@@ -43,8 +63,8 @@ for i, encoder in enumerate(encoders):
     ax.bar(x + i*width, similarities, width, label=encoder.upper(), alpha=0.8)
 
 ax.set_xlabel('Target Track')
-ax.set_ylabel('Retrieval Similarity')
-ax.set_title('Retrieval Similarity Comparison Across Encoders')
+ax.set_ylabel('Retrieval Similarity (Cosine)')
+ax.set_title('Retrieval Similarity: Target vs Retrieved Reference Music (by Encoder)')
 ax.set_xticks(x + width)
 ax.set_xticklabels(target_short, rotation=45, ha='right')
 ax.legend()
@@ -54,77 +74,24 @@ plt.savefig(asset_dir / "task1_retrieval_similarity.png", bbox_inches='tight')
 print(f"Saved: {asset_dir / 'task1_retrieval_similarity.png'}")
 plt.close()
 
-# 2. CLAP Similarity Comparison
-fig, ax = plt.subplots(figsize=(12, 6))
-for i, encoder in enumerate(encoders):
-    clap_sims = [eval_data[encoder][target]["clap_similarity"]
-                for target in target_names]
-    ax.bar(x + i*width, clap_sims, width, label=encoder.upper(), alpha=0.8)
+# Note: Only generating images that are used in report.md
+# Skipping: clap_similarity_comparison.png, melody_accuracy_comparison.png,
+#           aesthetics_comparison.png, average_performance.png
 
-ax.set_xlabel('Target Track')
-ax.set_ylabel('CLAP Similarity')
-ax.set_title('CLAP Similarity (Evaluation Metric) Across Encoders')
-ax.set_xticks(x + width)
-ax.set_xticklabels(target_short, rotation=45, ha='right')
-ax.legend()
-ax.grid(axis='y', alpha=0.3)
-plt.tight_layout()
-plt.savefig(asset_dir / "clap_similarity_comparison.png", bbox_inches='tight')
-print(f"Saved: {asset_dir / 'clap_similarity_comparison.png'}")
-plt.close()
-
-# 3. Melody Accuracy Comparison
-fig, ax = plt.subplots(figsize=(12, 6))
-for i, encoder in enumerate(encoders):
-    melody_accs = [eval_data[encoder][target]["melody_accuracy"]
-                  for target in target_names]
-    ax.bar(x + i*width, melody_accs, width, label=encoder.upper(), alpha=0.8)
-
-ax.set_xlabel('Target Track')
-ax.set_ylabel('Melody Accuracy')
-ax.set_title('Melody Accuracy Comparison Across Encoders')
-ax.set_xticks(x + width)
-ax.set_xticklabels(target_short, rotation=45, ha='right')
-ax.legend()
-ax.grid(axis='y', alpha=0.3)
-plt.tight_layout()
-plt.savefig(asset_dir / "melody_accuracy_comparison.png", bbox_inches='tight')
-print(f"Saved: {asset_dir / 'melody_accuracy_comparison.png'}")
-plt.close()
-
-# 4. Audiobox Aesthetics - 4 dimensions
+# Prepare aesthetics dims for summary table
 aesthetics_dims = ["ce", "cu", "pc", "pq"]
-aesthetics_names = ["Content Enjoyment", "Content Usefulness",
-                   "Production Complexity", "Production Quality"]
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-axes = axes.flatten()
-
-for dim_idx, (dim, dim_name) in enumerate(zip(aesthetics_dims, aesthetics_names)):
-    ax = axes[dim_idx]
-    for i, encoder in enumerate(encoders):
-        values = [eval_data[encoder][target]["aesthetics"][dim]
-                 for target in target_names]
-        ax.bar(x + i*width, values, width, label=encoder.upper(), alpha=0.8)
-
-    ax.set_xlabel('Target Track')
-    ax.set_ylabel(f'{dim_name} Score')
-    ax.set_title(f'Audiobox Aesthetics: {dim_name}')
-    ax.set_xticks(x + width)
-    ax.set_xticklabels(target_short, rotation=45, ha='right')
-    ax.legend()
-    ax.grid(axis='y', alpha=0.3)
-
-plt.tight_layout()
-plt.savefig(asset_dir / "aesthetics_comparison.png", bbox_inches='tight')
-print(f"Saved: {asset_dir / 'aesthetics_comparison.png'}")
-plt.close()
-
-# 5. Overall Performance Heatmap
+# 2. Overall Performance Heatmap
+# Heatmap showing three key metrics for comparing retrieval performance
+# - Retrieval Similarity: How well the encoder retrieved similar music
+# - CLAP Similarity: How similar target and retrieved are in CLAP space
+# - Melody Accuracy: How well the melody matches between target and retrieved
 fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 
 metrics = ["retrieval_similarity", "clap_similarity", "melody_accuracy"]
-metric_names = ["Retrieval Similarity", "CLAP Similarity", "Melody Accuracy"]
+metric_names = ["Retrieval Similarity\n(Encoder-specific)",
+                "CLAP Similarity\n(Target vs Retrieved)",
+                "Melody Accuracy\n(Target vs Retrieved)"]
 
 for idx, (metric, metric_name) in enumerate(zip(metrics, metric_names)):
     data_matrix = []
@@ -152,46 +119,13 @@ plt.savefig(asset_dir / "task1_performance_heatmap.png", bbox_inches='tight')
 print(f"Saved: {asset_dir / 'task1_performance_heatmap.png'}")
 plt.close()
 
-# 6. Average metrics per encoder
-fig, ax = plt.subplots(figsize=(10, 6))
-
-all_metrics = ["retrieval_similarity", "clap_similarity", "melody_accuracy",
-               "ce", "cu", "pc", "pq"]
-metric_labels = ["Retrieval Sim", "CLAP Sim", "Melody Acc",
-                "CE", "CU", "PC", "PQ"]
-
-x_pos = np.arange(len(all_metrics))
-width = 0.25
-
-for i, encoder in enumerate(encoders):
-    avg_values = []
-    for metric in all_metrics:
-        if metric in ["ce", "cu", "pc", "pq"]:
-            values = [eval_data[encoder][target]["aesthetics"][metric]
-                     for target in target_names]
-            # Normalize aesthetics to 0-1 range (assuming max ~8)
-            avg_values.append(np.mean(values) / 8.0)
-        else:
-            values = [eval_data[encoder][target][metric]
-                     for target in target_names]
-            avg_values.append(np.mean(values))
-
-    ax.bar(x_pos + i*width, avg_values, width, label=encoder.upper(), alpha=0.8)
-
-ax.set_xlabel('Metrics')
-ax.set_ylabel('Average Score (Normalized)')
-ax.set_title('Average Performance Across All Metrics')
-ax.set_xticks(x_pos + width)
-ax.set_xticklabels(metric_labels)
-ax.legend()
-ax.grid(axis='y', alpha=0.3)
-plt.tight_layout()
-plt.savefig(asset_dir / "average_performance.png", bbox_inches='tight')
-print(f"Saved: {asset_dir / 'average_performance.png'}")
-plt.close()
-
-# 7. Summary Statistics Table (as image)
-fig, ax = plt.subplots(figsize=(12, 8))
+# 3. Summary Statistics Table (as image)
+# Summary table showing mean ± std for core metrics across all target tracks
+# - Retrieval Sim: How well encoder retrieved similar reference music
+# - CLAP Sim: Similarity between target and retrieved (CLAP evaluation)
+# - Melody Acc: Melody matching between target and retrieved
+# Note: Removed CE/CU/PC/PQ columns to reduce table width
+fig, ax = plt.subplots(figsize=(8, 4))
 ax.axis('tight')
 ax.axis('off')
 
@@ -199,32 +133,27 @@ summary_data = []
 for encoder in encoders:
     row = [encoder.upper()]
 
-    # Retrieval similarity
+    # Retrieval similarity (encoder-specific)
     ret_sim = [eval_data[encoder][t]["retrieval_similarity"] for t in target_names]
     row.append(f"{np.mean(ret_sim):.3f} ± {np.std(ret_sim):.3f}")
 
-    # CLAP similarity
+    # CLAP similarity (target vs retrieved)
     clap_sim = [eval_data[encoder][t]["clap_similarity"] for t in target_names]
     row.append(f"{np.mean(clap_sim):.3f} ± {np.std(clap_sim):.3f}")
 
-    # Melody accuracy
+    # Melody accuracy (target vs retrieved)
     melody = [eval_data[encoder][t]["melody_accuracy"] for t in target_names]
     row.append(f"{np.mean(melody):.3f} ± {np.std(melody):.3f}")
 
-    # Aesthetics
-    for dim in aesthetics_dims:
-        aes_vals = [eval_data[encoder][t]["aesthetics"][dim] for t in target_names]
-        row.append(f"{np.mean(aes_vals):.2f} ± {np.std(aes_vals):.2f}")
-
     summary_data.append(row)
 
-columns = ["Encoder", "Retrieval Sim", "CLAP Sim", "Melody Acc", "CE", "CU", "PC", "PQ"]
+columns = ["Encoder", "Retrieval Sim", "CLAP Sim", "Melody Acc"]
 table = ax.table(cellText=summary_data, colLabels=columns,
                 cellLoc='center', loc='center',
                 colColours=['lightgray']*len(columns))
 table.auto_set_font_size(False)
-table.set_fontsize(10)
-table.scale(1, 2)
+table.set_fontsize(12)
+table.scale(1, 2.5)
 
 # No title for this image
 plt.savefig(asset_dir / "task1_summary_statistics.png", bbox_inches='tight')
@@ -232,5 +161,8 @@ print(f"Saved: {asset_dir / 'task1_summary_statistics.png'}")
 plt.close()
 
 print("\n✓ All visualizations created successfully!")
-print(f"Total images saved: 7")
+print("Total images saved: 3 (only those used in report.md)")
+print("  - task1_retrieval_similarity.png")
+print("  - task1_performance_heatmap.png")
+print("  - task1_summary_statistics.png")
 print(f"Output directory: {asset_dir.absolute()}")
