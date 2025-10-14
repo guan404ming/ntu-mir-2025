@@ -1,0 +1,83 @@
+{
+  "10_country_114_beat_4-4.wav": {
+    "audio_path": "../data/target_music_list_60s/10_country_114_beat_4-4.wav",
+    "file_name": "10_country_114_beat_4-4.wav",
+    "main_caption": "Country music with acoustic guitars and steady rhythm, featuring melodic vocals and traditional country instrumentation",
+    "genre": "Country",
+    "instruments": "Acoustic guitar, bass, drums",
+    "mood": "Upbeat and melodic with a traditional country feel",
+    "tempo": "Medium tempo with steady rhythm"
+  },
+  "4_jazz_120_beat_3-4.wav": {
+    "audio_path": "../data/target_music_list_60s/4_jazz_120_beat_3-4.wav",
+    "file_name": "4_jazz_120_beat_3-4.wav",
+    "main_caption": "Jazz music with complex harmonies and swing rhythm, featuring improvisational elements and sophisticated chord progressions",
+    "genre": "Jazz",
+    "instruments": "Piano, bass, drums, saxophone",
+    "mood": "Sophisticated and smooth with a swinging groove",
+    "tempo": "Medium tempo with steady rhythm"
+  },
+  "6_rock_102_beat_3-4.wav": {
+    "audio_path": "../data/target_music_list_60s/6_rock_102_beat_3-4.wav",
+    "file_name": "6_rock_102_beat_3-4.wav",
+    "main_caption": "Rock music with electric guitars and driving drums, featuring energetic rhythms and powerful instrumentation",
+    "genre": "Rock",
+    "instruments": "Electric guitar, bass guitar, drums",
+    "mood": "Energetic and powerful with a strong beat",
+    "tempo": "Medium tempo with steady rhythm"
+  },
+  "Hedwig’s theme x dizi ｜from Harry Potter ｜竹笛也能施魔法！Bamboo flute_60s.mp3": {
+    "audio_path": "../data/target_music_list_60s/Hedwig’s theme x dizi ｜from Harry Potter ｜竹笛也能施魔法！Bamboo flute_60s.mp3",
+    "file_name": "Hedwig’s theme x dizi ｜from Harry Potter ｜竹笛也能施魔法！Bamboo flute_60s.mp3",
+    "main_caption": "Film theme performed on bamboo flute (dizi), featuring the iconic Hedwig's Theme melody with traditional Chinese instrumentation",
+    "genre": "Film Score / Traditional Fusion",
+    "instruments": "Bamboo flute (dizi)",
+    "mood": "Magical and mystical with Asian traditional elements",
+    "tempo": "Medium tempo with steady rhythm"
+  },
+  "Mussorgsky： Pictures at an Exhibition (Pletnev, Andsnes)_60s.mp3": {
+    "audio_path": "../data/target_music_list_60s/Mussorgsky： Pictures at an Exhibition (Pletnev, Andsnes)_60s.mp3",
+    "file_name": "Mussorgsky： Pictures at an Exhibition (Pletnev, Andsnes)_60s.mp3",
+    "main_caption": "Classical piano music from Mussorgsky's Pictures at an Exhibition, featuring dramatic dynamics and rich harmonies",
+    "genre": "Classical / Romantic",
+    "instruments": "Piano",
+    "mood": "Dramatic and expressive with bold contrasts",
+    "tempo": "Medium tempo with steady rhythm"
+  },
+  "Spirited Away OST「Always With Me ⧸ Itsumo Nando Demo」Ru's Piano Cover [Sheet Music]_60s.mp3": {
+    "audio_path": "../data/target_music_list_60s/Spirited Away OST「Always With Me ⧸ Itsumo Nando Demo」Ru's Piano Cover [Sheet Music]_60s.mp3",
+    "file_name": "Spirited Away OST「Always With Me ⧸ Itsumo Nando Demo」Ru's Piano Cover [Sheet Music]_60s.mp3",
+    "main_caption": "Gentle piano solo performance of an emotional Japanese film score, featuring expressive dynamics and lyrical melodies",
+    "genre": "Film Score / Soundtrack",
+    "instruments": "Solo piano",
+    "mood": "Gentle, emotional, and nostalgic",
+    "tempo": "Medium tempo with steady rhythm"
+  },
+  "【楽譜あり】IRIS OUT⧸米津玄師（ピアノソロ上級）劇場版『チェンソーマン レゼ篇』主題歌【ピアノアレンジ楽譜】.mp3": {
+    "audio_path": "../data/target_music_list_60s/【楽譜あり】IRIS OUT⧸米津玄師（ピアノソロ上級）劇場版『チェンソーマン レゼ篇』主題歌【ピアノアレンジ楽譜】.mp3",
+    "file_name": "【楽譜あり】IRIS OUT⧸米津玄師（ピアノソロ上級）劇場版『チェンソーマン レゼ篇』主題歌【ピアノアレンジ楽譜】.mp3",
+    "main_caption": "Contemporary Japanese piano arrangement, featuring sophisticated harmonies and emotional expression",
+    "genre": "J-Pop / Piano Arrangement",
+    "instruments": "Piano",
+    "mood": "Emotional and contemplative with modern harmonies",
+    "tempo": "Medium tempo with steady rhythm"
+  },
+  "【菊花台-周杰倫（D調）】附伴奏⧸鋼琴伴奏(竹笛Bamboo flute、Roland Aerophone AE-10) 演奏：蘇俊琪(PSR-S970)audio-technica AT-2035_60s.mp3": {
+    "audio_path": "../data/target_music_list_60s/【菊花台-周杰倫（D調）】附伴奏⧸鋼琴伴奏(竹笛Bamboo flute、Roland Aerophone AE-10) 演奏：蘇俊琪(PSR-S970)audio-technica AT-2035_60s.mp3",
+    "file_name": "【菊花台-周杰倫（D調）】附伴奏⧸鋼琴伴奏(竹笛Bamboo flute、Roland Aerophone AE-10) 演奏：蘇俊琪(PSR-S970)audio-technica AT-2035_60s.mp3",
+    "main_caption": "Traditional Chinese music featuring bamboo flute (dizi), with melodic Asian influences and cultural instrumentation",
+    "genre": "Traditional Chinese / World Music",
+    "instruments": "Bamboo flute (dizi), traditional Chinese instruments",
+    "mood": "Melodic and expressive with traditional Asian character",
+    "tempo": "Medium tempo with steady rhythm"
+  },
+  "竹笛｜这世界那么多人_cover 莫文蔚_60s.mp3": {
+    "audio_path": "../data/target_music_list_60s/竹笛｜这世界那么多人_cover 莫文蔚_60s.mp3",
+    "file_name": "竹笛｜这世界那么多人_cover 莫文蔚_60s.mp3",
+    "main_caption": "Traditional Chinese music featuring bamboo flute (dizi), with melodic Asian influences and cultural instrumentation",
+    "genre": "Traditional Chinese / World Music",
+    "instruments": "Bamboo flute (dizi), traditional Chinese instruments",
+    "mood": "Melodic and expressive with traditional Asian character",
+    "tempo": "Medium tempo with steady rhythm"
+  }
+}

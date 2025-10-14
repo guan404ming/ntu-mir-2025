@@ -1,0 +1,55 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+================================================================================
+Task 2: Music Generation and Evaluation
+================================================================================
+Mode: simple
+MusicGen model: facebook/musicgen-melody
+Captioner: qwen
+Duration: 30.0s
+CFG scale: 3.0
+Temperature: 1.0
+Target directory: ../data/target_music_list_60s
+Output directory: results
+Device: cuda
+================================================================================
+
+Found 9 target files
+
+[1/6] Initializing models...
+  Loading audio captioner...
+Loading Qwen-Audio model: Qwen/Qwen2-Audio-7B-Instruct
+Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards:  20%|██        | 1/5 [00:00<00:03,  1.22it/s]Loading checkpoint shards:  40%|████      | 2/5 [00:01<00:02,  1.09it/s]Loading checkpoint shards:  60%|██████    | 3/5 [00:02<00:01,  1.04it/s]Loading checkpoint shards:  80%|████████  | 4/5 [00:03<00:00,  1.18it/s]Loading checkpoint shards: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]Loading checkpoint shards: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]
+Some parameters are on the meta device because they were offloaded to the cpu.
+Qwen-Audio model loaded successfully
+  Loading music generator...
+Traceback (most recent call last):
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/task2/run_generation.py", line 368, in <module>
+    main()
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/task2/run_generation.py", line 174, in main
+    generator = MusicGenGenerator(model_name=args.musicgen_model, device=args.device)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/task2/generation/musicgen_generator.py", line 26, in __init__
+    from audiocraft.models import MusicGen
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/audiocraft/__init__.py", line 24, in <module>
+    from . import data, modules, models
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/audiocraft/data/__init__.py", line 10, in <module>
+    from . import audio, audio_dataset, info_audio_dataset, music_dataset, sound_dataset
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/audiocraft/data/info_audio_dataset.py", line 19, in <module>
+    from ..modules.conditioners import SegmentWithAttributes, ConditioningAttributes
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/audiocraft/modules/conditioners.py", line 21, in <module>
+    import spacy
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/spacy/__init__.py", line 6, in <module>
+    from .errors import setup_default_warnings
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/spacy/errors.py", line 2, in <module>
+    from .compat import Literal
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/spacy/compat.py", line 38, in <module>
+    from thinc.api import Optimizer  # noqa: F401
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/thinc/api.py", line 1, in <module>
+    from .backends import (
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/thinc/backends/__init__.py", line 17, in <module>
+    from .cupy_ops import CupyOps
+  File "/home/gmchiu/Documents/Github/ntu-mir-2025/hw2/.venv/lib/python3.11/site-packages/thinc/backends/cupy_ops.py", line 16, in <module>
+    from .numpy_ops import NumpyOps
+  File "thinc/backends/numpy_ops.pyx", line 1, in init thinc.backends.numpy_ops
+ValueError: numpy.dtype size changed, may indicate binary incompatibility. Expected 96 from C header, got 88 from PyObject

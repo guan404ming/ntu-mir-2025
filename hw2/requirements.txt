@@ -10,3 +10,6 @@ music2latent>=0.1.6
 muq>=0.1.0
 audiobox_aesthetics>=0.1.0
 ruff>=0.14.0
+transformers>=4.50.0
+accelerate>=0.20.0
+qwen-vl-utils>=0.0.8
