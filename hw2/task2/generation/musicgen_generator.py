@@ -12,9 +12,7 @@ class MusicGenGenerator(BaseGenerator):
     """Music generator using Meta's MusicGen model via transformers."""
 
     def __init__(
-        self,
-        model_name: str = "facebook/musicgen-medium",
-        device: str = "cuda"
+        self, model_name: str = "facebook/musicgen-medium", device: str = "cuda"
     ):
         """
         Initialize MusicGen generator using transformers library.
@@ -23,90 +21,119 @@ class MusicGenGenerator(BaseGenerator):
             model_name: Hugging Face model name (musicgen-small/medium/large/melody)
             device: Device to use (cuda/cpu)
         """
-        from transformers import AutoProcessor, MusicgenForConditionalGeneration
-
         self.device = device
         self.model_name = model_name
 
         print(f"Loading MusicGen model via transformers: {model_name}")
+
+        # Check if this is the melody-conditioned model
+        self.is_melody_model = "melody" in model_name.lower()
+
+        # Import the appropriate model class
+        if self.is_melody_model:
+            from transformers import (
+                AutoProcessor,
+                MusicgenMelodyForConditionalGeneration,
+            )
+
+            model_class = MusicgenMelodyForConditionalGeneration
+        else:
+            from transformers import AutoProcessor, MusicgenForConditionalGeneration
+
+            model_class = MusicgenForConditionalGeneration
 
         # Load processor and model
         self.processor = AutoProcessor.from_pretrained(model_name)
 
         # Use device_map="auto" for CUDA to manage memory efficiently
         if device == "cuda":
-            self.model = MusicgenForConditionalGeneration.from_pretrained(
+            self.model = model_class.from_pretrained(
                 model_name,
                 torch_dtype=torch.float16,
                 device_map="auto",
-                low_cpu_mem_usage=True
+                low_cpu_mem_usage=True,
             )
+            self.dtype = torch.float16
         else:
-            self.model = MusicgenForConditionalGeneration.from_pretrained(
-                model_name,
-                torch_dtype=torch.float32
+            self.model = model_class.from_pretrained(
+                model_name, torch_dtype=torch.float32
             )
             self.model.to(device)
+            self.dtype = torch.float32
 
         self.model.eval()
 
         self.sample_rate = self.model.config.audio_encoder.sampling_rate
 
-        # Check if this is the melody-conditioned model
-        self.is_melody_model = "melody" in model_name.lower()
-
         print(f"MusicGen model loaded (SR: {self.sample_rate} Hz)")
-        print(f"Melody conditioning: {'Enabled' if self.is_melody_model else 'Disabled'}")
+        print(f"Model dtype: {self.dtype}")
+        print(
+            f"Melody conditioning: {'Enabled' if self.is_melody_model else 'Disabled'}"
+        )
 
     def generate(
         self,
         prompt: str,
         duration: float = 30.0,
-        cfg_scale: float = 3.0,
+        guidance_scale: float = 3.0,
         temperature: float = 1.0,
         top_k: int = 250,
         top_p: float = 0.0,
-        **kwargs
+        do_sample: bool = True,
+        **kwargs,
     ) -> np.ndarray:
         """
-        Generate music from text prompt only.
+        Generate music from text prompt following official Transformers usage.
 
         Args:
             prompt: Text description for music generation
-            duration: Duration of generated music in seconds
-            cfg_scale: Classifier-free guidance scale (higher = more prompt adherence)
+            duration: Duration of generated music in seconds (max 30s)
+            guidance_scale: Classifier-free guidance scale (default=3.0, higher = more prompt adherence)
             temperature: Sampling temperature (higher = more random)
             top_k: Top-k sampling parameter
             top_p: Top-p (nucleus) sampling parameter
+            do_sample: Whether to use sampling (recommended over greedy decoding)
             **kwargs: Additional generation parameters
 
         Returns:
             Generated audio as numpy array (mono)
         """
         print(f"Generating music with prompt: '{prompt}'")
-        print(f"Duration: {duration}s, CFG scale: {cfg_scale}, Temperature: {temperature}")
+        print(
+            f"Duration: {duration}s, Guidance scale: {guidance_scale}, Temperature: {temperature}"
+        )
 
-        # Process inputs
+        # Process inputs following official Transformers usage
         inputs = self.processor(
             text=[prompt],
             padding=True,
             return_tensors="pt",
-        ).to(self.device)
+        )
+
+        # Move inputs to device with correct dtype
+        if self.device == "cuda":
+            inputs = {
+                k: v.to(
+                    self.device,
+                    dtype=self.dtype if v.dtype.is_floating_point else v.dtype,
+                )
+                for k, v in inputs.items()
+            }
 
         # Calculate max_new_tokens from duration
-        # MusicGen generates at ~50 tokens/second
-        max_new_tokens = int(duration * 50)
+        # MusicGen generates at ~50 tokens/second, max 1503 tokens (30 seconds)
+        max_new_tokens = min(int(duration * 50), 1503)
 
-        # Generate
+        # Generate following official API
         with torch.no_grad():
             audio_values = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
-                guidance_scale=cfg_scale,
+                guidance_scale=guidance_scale,
+                do_sample=do_sample,
                 temperature=temperature,
                 top_k=top_k,
                 top_p=top_p if top_p > 0 else None,
-                do_sample=True,
             )
 
         # Convert to numpy (shape: [batch, channels, samples])
@@ -118,11 +145,12 @@ class MusicGenGenerator(BaseGenerator):
         self,
         prompt: str,
         melody: np.ndarray,
-        melody_sr: int = 24000,
+        melody_sr: int = 32000,
         duration: float = 30.0,
-        cfg_scale: float = 3.0,
+        guidance_scale: float = 3.0,
         temperature: float = 1.0,
-        **kwargs
+        do_sample: bool = True,
+        **kwargs,
     ) -> np.ndarray:
         """
         Generate music with melody conditioning.
@@ -132,8 +160,9 @@ class MusicGenGenerator(BaseGenerator):
             melody: Melody audio as numpy array for conditioning
             melody_sr: Sample rate of melody audio
             duration: Duration of generated music in seconds
-            cfg_scale: Classifier-free guidance scale
+            guidance_scale: Classifier-free guidance scale
             temperature: Sampling temperature
+            do_sample: Whether to use sampling
             **kwargs: Additional generation parameters
 
         Returns:
@@ -142,45 +171,70 @@ class MusicGenGenerator(BaseGenerator):
         if not self.is_melody_model:
             print(f"Warning: {self.model_name} doesn't support melody conditioning.")
             print("Falling back to text-only generation.")
-            return self.generate(prompt, duration, cfg_scale, temperature, **kwargs)
+            return self.generate(
+                prompt, duration, guidance_scale, temperature, do_sample, **kwargs
+            )
 
         print(f"Generating music with prompt: '{prompt}' and melody conditioning")
-        print(f"Duration: {duration}s, CFG scale: {cfg_scale}")
+        print(f"Duration: {duration}s, Guidance scale: {guidance_scale}")
 
-        # Prepare melody tensor
-        if melody.ndim == 1:
-            melody = melody[np.newaxis, :]  # Add channel dimension
-
-        melody_tensor = torch.from_numpy(melody).float()
+        # Prepare melody array - processor expects numpy array
+        melody_array = melody.copy()
 
         # Resample melody if needed
         if melody_sr != self.sample_rate:
+            # Convert to tensor for resampling
+            if melody_array.ndim == 1:
+                melody_tensor = torch.from_numpy(melody_array[np.newaxis, :]).float()
+            else:
+                melody_tensor = torch.from_numpy(melody_array).float()
+
             resampler = torchaudio.transforms.Resample(melody_sr, self.sample_rate)
             melody_tensor = resampler(melody_tensor)
 
-        # Ensure correct shape [1, channels, samples]
-        if melody_tensor.ndim == 2:
-            melody_tensor = melody_tensor.unsqueeze(0)  # Add batch dimension
+            # Convert back to numpy
+            melody_array = melody_tensor.numpy()
+            if melody_array.ndim == 2 and melody_array.shape[0] == 1:
+                melody_array = melody_array[0]  # Remove channel dimension for mono
 
-        melody_tensor = melody_tensor.to(self.device)
+        # Process inputs with both text and audio (processor expects numpy array)
+        inputs = self.processor(
+            text=[prompt],
+            audio=melody_array,
+            sampling_rate=self.sample_rate,
+            padding=True,
+            return_tensors="pt",
+        )
 
-        # Note: The current transformers implementation of MusicGen doesn't fully support
-        # melody conditioning via the generate() method. The processor returns 'input_features'
-        # but generate() doesn't accept it. For now, we fall back to text-only generation.
-        # TODO: Implement melody conditioning using audiocraft library or wait for transformers fix
+        # Move inputs to device with correct dtype
+        if self.device == "cuda":
+            inputs = {
+                k: v.to(
+                    self.device,
+                    dtype=self.dtype if v.dtype.is_floating_point else v.dtype,
+                )
+                for k, v in inputs.items()
+            }
 
-        print("Warning: Melody conditioning not fully supported in transformers implementation.")
-        print("Falling back to text-only generation with enhanced prompt.")
+        # Calculate max_new_tokens from duration
+        max_new_tokens = min(int(duration * 50), 1503)
 
-        # Fall back to text-only generation
-        return self.generate(prompt, duration, cfg_scale, temperature, **kwargs)
+        # Generate with melody conditioning
+        with torch.no_grad():
+            audio_values = self.model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                guidance_scale=guidance_scale,
+                do_sample=do_sample,
+                temperature=temperature,
+            )
 
-    def save_audio(
-        self,
-        audio: np.ndarray,
-        output_path: str,
-        sr: Optional[int] = None
-    ):
+        # Convert to numpy
+        audio = audio_values.cpu().numpy()[0, 0]
+
+        return audio
+
+    def save_audio(self, audio: np.ndarray, output_path: str, sr: Optional[int] = None):
         """
         Save generated audio to file.
 

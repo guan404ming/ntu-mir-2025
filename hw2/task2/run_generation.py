@@ -37,6 +37,7 @@ from task1.encoders.clap_encoder import CLAPEncoder
 def convert_to_serializable(obj):
     """Convert numpy types to Python native types for JSON serialization."""
     import numpy as np
+
     if isinstance(obj, np.floating):
         return float(obj)
     elif isinstance(obj, np.integer):
@@ -71,7 +72,12 @@ def main():
         "--musicgen-model",
         type=str,
         default="facebook/musicgen-melody",
-        choices=["facebook/musicgen-small", "facebook/musicgen-medium", "facebook/musicgen-large", "facebook/musicgen-melody"],
+        choices=[
+            "facebook/musicgen-small",
+            "facebook/musicgen-medium",
+            "facebook/musicgen-large",
+            "facebook/musicgen-melody",
+        ],
         help="MusicGen model to use",
     )
     parser.add_argument(
@@ -191,7 +197,8 @@ def main():
         # Load captioner only when needed
         print("  Loading audio captioner...")
         if args.captioner == "qwen":
-            captioner = QwenAudioCaptioner(device=args.device)
+            # Use 8-bit quantization to reduce memory usage (~50% memory savings)
+            captioner = QwenAudioCaptioner(device=args.device, use_8bit=True)
 
         for i, target_file in enumerate(target_files):
             print(f"\n  [{i + 1}/{len(target_files)}] Captioning: {target_file.name}")
@@ -209,6 +216,7 @@ def main():
         del captioner
         import gc
         import torch
+
         gc.collect()
         if args.device == "cuda":
             torch.cuda.empty_cache()
@@ -224,7 +232,9 @@ def main():
         rhythm_extractor = RhythmExtractor(sr=32000)
 
         for i, target_file in enumerate(target_files):
-            print(f"\n  [{i + 1}/{len(target_files)}] Extracting features: {target_file.name}")
+            print(
+                f"\n  [{i + 1}/{len(target_files)}] Extracting features: {target_file.name}"
+            )
 
             # Extract melody
             melody = melody_extractor.extract_melody_for_musicgen(
@@ -291,7 +301,9 @@ def main():
                     temperature=args.temperature,
                 )
             else:
-                print("Warning: Model doesn't support melody conditioning, using text only")
+                print(
+                    "Warning: Model doesn't support melody conditioning, using text only"
+                )
                 audio = generator.generate(
                     prompt=enhanced_prompt,
                     duration=args.duration,
