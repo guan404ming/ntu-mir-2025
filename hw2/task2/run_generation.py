@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """Main script for Task 2: Music Generation and Evaluation.
 
 Task 2 Overview (from CLAUDE.md):
@@ -26,12 +27,20 @@ import sys
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
+# IMPORTANT: Save sys.argv before importing any modules that use laion_clap
+# laion_clap has module-level argparse that interferes with our script's arguments
+_saved_argv = sys.argv.copy()
+sys.argv = [sys.argv[0]]  # Keep only the script name
+
 from task2.captioning.qwen_captioner import QwenAudioCaptioner
 from task2.generation.musicgen_generator import MusicGenGenerator
 from task2.features.melody_extractor import MelodyExtractor
 from task2.features.rhythm_extractor import RhythmExtractor
 from task2.metrics import CLAPMetric, MelodyMetric, AestheticsMetric
 from task1.encoders.clap_encoder import CLAPEncoder
+
+# Restore sys.argv after imports
+sys.argv = _saved_argv
 
 
 def convert_to_serializable(obj):

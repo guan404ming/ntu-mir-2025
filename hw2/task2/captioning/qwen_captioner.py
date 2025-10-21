@@ -171,12 +171,11 @@ class QwenAudioCaptioner(BaseCaptioner):
         """
         # Use a single comprehensive prompt to get all information at once
         # This is more memory efficient than multiple separate generations
-        main_prompt = """Describe this music in detail, including:
+        main_prompt = """Describe this music in detail like a music critic, including:
 1. Genre
 2. Instruments
 3. Mood and emotional character
-4. Tempo and rhythm
-5. Key musical elements
+4. Key musical elements
 
 Provide a comprehensive description."""
 
@@ -191,8 +190,4 @@ Provide a comprehensive description."""
             "audio_path": str(audio_path),
             "file_name": Path(audio_path).name,
             "main_caption": main_caption,
-            "genre": main_caption,  # Full caption contains genre info
-            "instruments": main_caption,  # Full caption contains instruments info
-            "mood": main_caption,  # Full caption contains mood info
-            "tempo": main_caption,  # Full caption contains tempo info
         }
