@@ -11,6 +11,10 @@ style: @import url('https://unpkg.com/tailwindcss@^2/dist/utilities.min.css');
 **Student:** 邱冠銘
 **Student ID:** R14921046
 
+<style>
+table { font-size: 0.75em; }
+</style>
+
 ---
 
 # Task 1: Music Retrieval with Audio Embeddings
@@ -82,10 +86,6 @@ Retrieve the most similar reference music tracks for each target song using diff
 ---
 
 ## Per-Track Retrieval Results - CLAP
-
-<style scoped>
-table { font-size: 0.75em; }
-</style>
 
 | Target Track | Top Retrieved | Cosine Similarity | CLAP | Melody Acc. | CE | CU | PC | PQ |
 |--------------|---------------|------------|------|--------|----|----|----|----|
@@ -299,13 +299,173 @@ table { font-size: 0.75em; }
 
 ---
 
-## References
+# Task 2: Music Generation with Text-to-Music Models
+
+---
+
+## Overview
+
+Generate music similar to target tracks using Qwen-Audio captioning and MusicGen-Melody generation.
+
+<div class="grid grid-cols-3 gap-4">
+<div>
+
+**Simple Mode**
+- **Input**: Text caption only
+- **CFG Scale**: 3.0
+
+</div>
+<div>
+
+**Medium Mode**
+- **Input**: Text caption + melody
+- **CFG Scale**: 3.0
+
+</div>
+<div>
+
+**Strong Mode**
+- **Input**: Text caption + melody
+- **CFG Scale**: 5.0 (higher)
+
+</div>
+</div>
+
+**Key Difference**: Medium and Strong use melody conditioning (critical for similarity), while Strong uses higher CFG for tighter control.
+
+---
+
+# Implementation Details
+
+- **Qwen-Audio** → music captions (genre, instruments, mood, tempo)
+- **basic.pitch** → melody extraction for conditioning
+- **MusicGen-Melody** → music generation
+- **Evaluation**: CLAP similarity, melody accuracy, Meta Audiobox aesthetics
+
+---
+
+## Mode Comparison - Metrics
+
+![](assets/task2_mode_comparison_metrics.png)
+
+**Observations:**
+- Simple mode fails: CLAP 0.055, Melody 0.071
+- Medium mode: +697% CLAP, +453% Melody improvement
+- Strong mode: +10% CLAP over Medium
+- Aesthetics: 3.4→7.3 CE with melody conditioning
+
+---
+
+## Mode Comparison - Heatmaps
+
+![](assets/task2_mode_comparison_heatmaps.png)
+
+**Track Analysis:**
+- Hedwig (Dizi) best: CLAP 0.742, Melody 0.526
+- Traditional instruments perform consistently better
+- Rock/Country struggle across all modes
+- Piano shows moderate performance (0.4-0.5)
+
+---
+
+## Per-Track Results - Simple Mode
+
+
+| Target Track | CLAP | Melody | CE | CU | PC | PQ |
+|--------------|------|--------|----|----|----|----|
+| Country 114 BPM | 0.054 | 0.050 | 3.2 | 4.8 | 4.6 | 5.1 |
+| Jazz 120 BPM | 0.234 | 0.041 | 3.7 | 5.5 | 4.0 | 5.6 |
+| Rock 102 BPM | 0.023 | 0.073 | 2.2 | 5.0 | 3.5 | 5.3 |
+| Hedwig (Dizi) | 0.108 | 0.060 | 3.1 | 4.4 | 4.4 | 5.1 |
+| Mussorgsky | -0.083 | 0.121 | 4.4 | 5.1 | 5.3 | 5.1 |
+| Spirited Away | -0.034 | 0.082 | 3.4 | 6.2 | 4.0 | 6.5 |
+| IRIS OUT | 0.077 | 0.045 | 2.9 | 4.7 | 4.4 | 5.5 |
+| 菊花台 | 0.017 | 0.075 | 3.3 | 4.9 | 3.9 | 5.4 |
+| 莫文蔚 | 0.101 | 0.095 | 4.7 | 5.5 | 5.4 | 5.5 |
+
+**Average:** CLAP: 0.055, Melody: 0.071, CE: 3.4, CU: 5.1, PC: 4.4, PQ: 5.5
+
+---
+
+## Per-Track Results - Medium Mode
+
+
+| Target Track | CLAP | Melody | CE | CU | PC | PQ |
+|--------------|------|--------|----|----|----|----|
+| Country 114 BPM | 0.316 | 0.171 | 6.0 | 7.1 | 5.2 | 7.2 |
+| Jazz 120 BPM | 0.379 | 0.258 | 8.2 | 8.2 | 5.7 | 8.2 |
+| Rock 102 BPM | 0.383 | 0.224 | 7.9 | 8.0 | 6.1 | 8.0 |
+| Hedwig (Dizi) | 0.574 | 0.669 | 6.9 | 7.4 | 4.7 | 6.7 |
+| Mussorgsky | 0.522 | 0.327 | 7.3 | 7.7 | 3.8 | 7.0 |
+| Spirited Away | 0.354 | 0.505 | 7.4 | 7.7 | 4.0 | 7.1 |
+| IRIS OUT | 0.470 | 0.419 | 7.4 | 7.8 | 5.4 | 7.8 |
+| 菊花台 | 0.609 | 0.468 | 7.5 | 7.9 | 5.3 | 7.8 |
+| 莫文蔚 | 0.354 | 0.507 | 7.3 | 7.6 | 4.6 | 7.2 |
+
+**Average:** CLAP: 0.440, Melody: 0.394, CE: 7.3, CU: 7.7, PC: 5.0, PQ: 7.4
+
+---
+
+## Per-Track Results - Strong Mode
+
+| Target Track | CLAP | Melody | CE | CU | PC | PQ |
+|--------------|------|--------|----|----|----|----|
+| Country 114 BPM | 0.404 | 0.175 | 7.3 | 7.8 | 5.6 | 7.6 |
+| Jazz 120 BPM | 0.397 | 0.319 | 7.0 | 7.4 | 5.5 | 6.5 |
+| Rock 102 BPM | 0.364 | 0.200 | 7.2 | 7.6 | 6.2 | 7.6 |
+| Hedwig (Dizi) | 0.742 | 0.526 | 7.5 | 7.8 | 4.9 | 7.4 |
+| Mussorgsky | 0.452 | 0.514 | 7.4 | 7.7 | 3.5 | 7.4 |
+| Spirited Away | 0.420 | 0.496 | 7.5 | 7.8 | 4.2 | 7.1 |
+| IRIS OUT | 0.470 | 0.376 | 7.2 | 7.5 | 4.8 | 7.4 |
+| 菊花台 | 0.552 | 0.411 | 7.5 | 7.7 | 5.1 | 7.8 |
+| 莫文蔚 | 0.543 | 0.508 | 7.7 | 7.8 | 4.7 | 7.4 |
+
+**Average:** CLAP: 0.483, Melody: 0.392, CE: 7.4, CU: 7.7, PC: 5.0, PQ: 7.4
+
+---
+
+## Performance Summary
+
+![](assets/task2_summary_statistics.png)
+
+---
+
+## Key Findings
+
+1. **Melody conditioning is critical:**
+   - Simple mode (text-only): CLAP 0.055, Melody 0.071
+   - Medium/Strong (text + melody): CLAP 0.44-0.48 (+697%), Melody ~0.39
+   - CFG 5.0 (Strong) provides +10% CLAP improvement over CFG 3.0 (Medium)
+
+2. **Quality progression:**
+   - Simple: Low quality (CE: 3.4, PQ: 5.5)
+   - Medium/Strong: Professional quality (CE: 7.3-7.4, PQ: 7.4)
+
+3. **Track characteristics:**
+   - Best: Hedwig (Dizi) - CLAP: 0.742, Melody: 0.526
+   - Traditional instruments (flute, dizi) generate better than rock/complex orchestral
+
+---
+
+# References
+
+## Task 1: Music Retrieval
 
 - **CLAP**: Wu, Y., et al. (2023). Large-scale Contrastive Language-Audio Pretraining. *ICASSP*.
 - **Music2Latent**: Mariani, G., et al. (2023). Consistency Autoencoders for Audio. *Sony CSL Paris*.
 - **MuQ**: Wang, Y., et al. (2023). Self-Supervised Music Representation Learning with Mel Residual Vector Quantization. *Tencent AI Lab*.
-- **Audiobox Aesthetics**: Meta AI (2024). Audiobox: Unified Audio Generation with Natural Language Prompts.
+- **Meta Audiobox**: Meta AI (2024). Audiobox: Unified Audio Generation with Natural Language Prompts.
 - **librosa**: McFee, B., et al. (2015). librosa: Audio and Music Signal Analysis in Python.
+
+---
+
+## Task 2: Music Generation
+
+- **Qwen-Audio**: Chu, Y., et al. (2024). Qwen-Audio: Advancing Universal Audio Understanding. *arXiv*.
+- **MusicGen**: Copet, J., et al. (2023). Simple and Controllable Music Generation. *NeurIPS*.
+- **basic.pitch**: Spotify Research (2022). A Lightweight Note Transcription Model.
+- **CLAP**: Wu, Y., et al. (2023). Large-scale Contrastive Language-Audio Pretraining. *ICASSP*.
+- **Meta Audiobox**: Meta AI (2024). Audiobox: Unified Audio Generation with Natural Language Prompts.
 
 ---
 
