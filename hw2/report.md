@@ -348,12 +348,6 @@ Generate music similar to target tracks using Qwen-Audio captioning and MusicGen
 
 ![](assets/task2_mode_comparison_metrics.png)
 
-**Observations:**
-- Simple mode fails: CLAP 0.055, Melody 0.071
-- Medium mode: +697% CLAP, +453% Melody improvement
-- Strong mode: +10% CLAP over Medium
-- Aesthetics: 3.4→7.3 CE with melody conditioning
-
 ---
 
 ## Mode Comparison - Heatmaps
@@ -367,6 +361,15 @@ Generate music similar to target tracks using Qwen-Audio captioning and MusicGen
 - Piano shows moderate performance (0.4-0.5)
 
 ---
+
+## Observations
+- Simple mode fails: avg CLAP 0.055, Melody 0.071
+- Medium mode: +697% avg CLAP, +453% Melody improvement
+- Strong mode: +10% avg CLAP over Medium
+- Aesthetics: 3.4→7.3 avg CE with melody conditioning
+
+---
+
 
 ## Per-Track Results - Simple Mode
 
