@@ -24,12 +24,22 @@ class QwenAudioCaptioner(BaseCaptioner):
             use_8bit: Use 8-bit quantization to reduce memory (requires bitsandbytes)
         """
         from transformers import Qwen2AudioForConditionalGeneration, AutoProcessor
+        import warnings
 
         self.device = device
         self.model_name = model_name
 
         print(f"Loading Qwen-Audio model: {model_name}")
-        self.processor = AutoProcessor.from_pretrained(model_name)
+
+        # Suppress the WhisperFeatureExtractor sampling_rate warning
+        # This is a known issue in transformers where AutoProcessor doesn't pass
+        # sampling_rate to WhisperFeatureExtractor, but it's harmless
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="It is strongly recommended to pass the `sampling_rate` argument",
+            )
+            self.processor = AutoProcessor.from_pretrained(model_name)
 
         # Prepare model loading arguments
         model_kwargs = {

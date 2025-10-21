@@ -1,8 +1,9 @@
 """MusicGen-based music generator using transformers (no spacy dependency)."""
 
 import torch
-import torchaudio
 import numpy as np
+import scipy.io.wavfile
+import scipy.signal
 from pathlib import Path
 from typing import Optional
 from .base_generator import BaseGenerator
@@ -183,19 +184,15 @@ class MusicGenGenerator(BaseGenerator):
 
         # Resample melody if needed
         if melody_sr != self.sample_rate:
-            # Convert to tensor for resampling
+            # Use scipy for resampling
             if melody_array.ndim == 1:
-                melody_tensor = torch.from_numpy(melody_array[np.newaxis, :]).float()
+                # Mono audio
+                num_samples = int(len(melody_array) * self.sample_rate / melody_sr)
+                melody_array = scipy.signal.resample(melody_array, num_samples)
             else:
-                melody_tensor = torch.from_numpy(melody_array).float()
-
-            resampler = torchaudio.transforms.Resample(melody_sr, self.sample_rate)
-            melody_tensor = resampler(melody_tensor)
-
-            # Convert back to numpy
-            melody_array = melody_tensor.numpy()
-            if melody_array.ndim == 2 and melody_array.shape[0] == 1:
-                melody_array = melody_array[0]  # Remove channel dimension for mono
+                # Multi-channel audio - resample first channel only
+                num_samples = int(melody_array.shape[1] * self.sample_rate / melody_sr)
+                melody_array = scipy.signal.resample(melody_array[0], num_samples)
 
         # Process inputs with both text and audio (processor expects numpy array)
         inputs = self.processor(
@@ -236,10 +233,10 @@ class MusicGenGenerator(BaseGenerator):
 
     def save_audio(self, audio: np.ndarray, output_path: str, sr: Optional[int] = None):
         """
-        Save generated audio to file.
+        Save generated audio to file using scipy.
 
         Args:
-            audio: Audio array to save
+            audio: Audio array to save (mono, float32)
             output_path: Output file path
             sr: Sample rate (uses model's sample rate if not specified)
         """
@@ -249,20 +246,21 @@ class MusicGenGenerator(BaseGenerator):
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Ensure correct shape
-        if audio.ndim == 1:
-            audio = audio[np.newaxis, :]  # Add channel dimension
+        # Ensure audio is 1D (mono)
+        if audio.ndim == 2:
+            audio = audio[0]  # Take first channel if stereo
 
-        # Normalize audio to prevent clipping (values outside [-1, 1])
-        # This is crucial for quality - MusicGen sometimes produces values > 1.0
-        max_abs = np.abs(audio).max()
-        if max_abs > 1.0:
-            print(f"  Normalizing audio (max: {max_abs:.2f}) to prevent clipping")
-            audio = audio / max_abs * 0.95  # Scale to 95% to leave some headroom
+        # # Normalize audio to prevent clipping (values outside [-1, 1])
+        # # This is crucial for quality - MusicGen sometimes produces values > 1.0
+        # max_abs = np.abs(audio).max()
+        # if max_abs > 1.0:
+        #     print(f"  Normalizing audio (max: {max_abs:.2f}) to prevent clipping")
+        #     audio = audio / max_abs * 0.95  # Scale to 95% to leave some headroom
 
-        # Convert to tensor
-        audio_tensor = torch.from_numpy(audio).float()
+        # scipy.io.wavfile.write expects float32 in range [-1, 1] or int16
+        # We'll keep it as float32 for best quality
+        audio = audio.astype(np.float32)
 
-        # Save
-        torchaudio.save(str(output_path), audio_tensor, sr)
+        # Save using scipy
+        scipy.io.wavfile.write(str(output_path), rate=sr, data=audio)
         print(f"Saved generated audio to: {output_path}")

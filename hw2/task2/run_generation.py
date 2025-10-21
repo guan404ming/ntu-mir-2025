@@ -276,7 +276,7 @@ def main():
             audio = generator.generate(
                 prompt=caption,
                 duration=args.duration,
-                cfg_scale=args.cfg_scale,
+                guidance_scale=args.cfg_scale,
                 temperature=args.temperature,
             )
 
@@ -297,7 +297,7 @@ def main():
                     melody=melody,
                     melody_sr=generator.sample_rate,
                     duration=args.duration,
-                    cfg_scale=args.cfg_scale,
+                    guidance_scale=args.cfg_scale,
                     temperature=args.temperature,
                 )
             else:
@@ -307,7 +307,7 @@ def main():
                 audio = generator.generate(
                     prompt=enhanced_prompt,
                     duration=args.duration,
-                    cfg_scale=args.cfg_scale,
+                    guidance_scale=args.cfg_scale,
                     temperature=args.temperature,
                 )
 
