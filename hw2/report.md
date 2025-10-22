@@ -146,8 +146,8 @@ table { font-size: 0.75em; }
 ### Retrieval Similarity
 
 - **Music2Latent** achieves highest average retrieval similarity (0.883)
-- **CLAP** performs well (0.830) with balanced results
-- **MuQ** shows more conservative similarity scores (0.802)
+- **CLAP** performs well (0.769) with balanced results
+- **MuQ** shows more conservative similarity scores (0.770)
 
 ### CLAP Similarity (Target vs Retrieved)
 
@@ -318,14 +318,14 @@ Generate music similar to target tracks using Qwen-Audio captioning and MusicGen
 <div>
 
 **Medium Mode**
-- **Input**: Text caption + melody
+- **Input**: Text caption + melody and rhythm features
 - **CFG Scale**: 3.0
 
 </div>
 <div>
 
 **Strong Mode**
-- **Input**: Text caption + melody
+- **Input**: Text caption + melody and rhythm features
 - **CFG Scale**: 5.0 (higher)
 
 </div>
@@ -338,7 +338,7 @@ Generate music similar to target tracks using Qwen-Audio captioning and MusicGen
 # Implementation Details
 
 - **Qwen-Audio** → music captions (genre, instruments, mood, tempo)
-- **basic.pitch** → melody extraction for conditioning
+- **librosa** → melody and rhythm extraction for conditioning
 - **MusicGen-Melody** → music generation
 - **Evaluation**: CLAP similarity, melody accuracy, Meta Audiobox aesthetics
 
