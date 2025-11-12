@@ -5,5 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "torch>=2.9.1",
+    "miditoolkit>=1.0.1",
+    "numpy==1.23.5",
+    "torch==2.9.0",
+    "tqdm>=4.67.1",
+    "transformers>=4.57.1",
 ]
