@@ -44,11 +44,12 @@
 
 ### Rules
 
-1. use uv to manage the environment
+1. use uv to manage the environment abd use ruff to format the code
 2. follow the best practices and keep the code clean and simple but precise
 3. put source code in `./src`
 4. there are some sample code in `./tutorial/`, you can use them as reference
 5. NO need to create any readme or any doc for the changes you made
+6. keep every epochs checkpoint in `./checkpoints`
 
 ### Steps
 
