@@ -283,8 +283,6 @@ table { font-size: 0.75em; }
 
 ## Conclusion
 
-### Key Takeaways
-
 1. **Different encoders capture different aspects** of music:
    - CLAP: Semantic understanding
    - Music2Latent: Fine-grained details
@@ -428,6 +426,43 @@ Generate music similar to target tracks using Qwen-Audio captioning and MusicGen
 
 ---
 
+## Detailed Analysis: CFG Scale Impact
+
+---
+
+## CFG Scale and Conditioning Trade-offs
+
+### Classifier-Free Guidance (CFG) Effects
+
+**Medium Mode (CFG=3.0) vs Strong Mode (CFG=5.0):**
+
+- **CLAP Similarity**: +10% improvement (0.440 → 0.483)
+- **Melody Accuracy**: -0.5% change (0.394 → 0.392)
+- **Aesthetics**: Minimal change (both modes achieve 7.3-7.4 CE)
+
+### Observations
+
+1. **Higher CFG strengthens text adherence** but doesn't necessarily improve melody matching
+2. **Sweet spot at CFG=5.0**: Better semantic alignment without quality degradation
+3. **Diminishing returns**: Beyond CFG=5.0 may cause overfitting to text prompts
+
+---
+
+## Challenges and Limitations
+
+### 1. Text-to-Music Alignment Gap
+
+- **Problem**: Captions capture high-level semantics but miss fine-grained details
+- **Impact**: Simple mode (text-only) fails to capture musical nuances
+
+### 2. Genre Bias in MusicGen
+
+- **Problem**: Better performance on monophonic content (flute, piano) vs polyphonic (jazz, rock)
+- **Hypothesis**: Training data distribution favors simpler melodic structures
+- **Evidence**: Traditional instruments (0.60-0.74 CLAP) vs Western genres (0.36-0.40)
+
+---
+
 ## Performance Summary
 
 ![](assets/task2_summary_statistics.png)
@@ -448,6 +483,7 @@ Generate music similar to target tracks using Qwen-Audio captioning and MusicGen
 3. **Track characteristics:**
    - Best: Hedwig (Dizi) - CLAP: 0.742, Melody: 0.526
    - Traditional instruments (flute, dizi) generate better than rock/complex orchestral
+
 
 ---
 
